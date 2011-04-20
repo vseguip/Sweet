@@ -21,22 +21,16 @@ package com.github.vseguip.sweet;
 
 import com.github.vseguip.sweet.contacts.SweetContactSync;
 
-import android.accounts.AccountManager;
 import android.app.Service;
 import android.content.AbstractThreadedSyncAdapter;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.SyncAdapterType;
-import android.content.SyncContext;
 import android.os.IBinder;
-import android.provider.ContactsContract;
-import android.widget.AnalogClock;
 
 public class SweetSyncService extends Service {
 	private AbstractThreadedSyncAdapter mSyncAdapter = null;
 
 	@Override
-	public IBinder onBind(Intent intent) {		
+	public IBinder onBind(Intent intent) {
 		return getSyncAdapter().getSyncAdapterBinder();
 
 	}

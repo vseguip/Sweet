@@ -25,29 +25,29 @@ import android.preference.PreferenceActivity;
 import android.util.Log;
 
 public class SweetAccountPreferences extends PreferenceActivity {
-		
-		public static final String TAG = "SweetAccountPreferences";
-		private boolean shouldForceSync = false;
 
-		@Override
-		public void onCreate(Bundle icicle) {
-		    super.onCreate(icicle);
-		    Log.i(TAG, "onCreate");
-		    addPreferencesFromResource(R.xml.account_preferences_resources);
+	public static final String TAG = "SweetAccountPreferences";
+	private boolean shouldForceSync = false;
+
+	@Override
+	public void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		Log.i(TAG, "onCreate");
+		addPreferencesFromResource(R.xml.account_preferences_resources);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if (shouldForceSync) {
+			// AccountAuthenticatorService.resyncAccount(this);
 		}
+	}
 
-		@Override
-		public void onPause() {
-		    super.onPause();
-		    if (shouldForceSync) {
-		        //AccountAuthenticatorService.resyncAccount(this);
-		    }
+	Preference.OnPreferenceChangeListener syncToggle = new Preference.OnPreferenceChangeListener() {
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+			shouldForceSync = true;
+			return true;
 		}
-
-		Preference.OnPreferenceChangeListener syncToggle = new Preference.OnPreferenceChangeListener() {
-		    public boolean onPreferenceChange(Preference preference, Object newValue) {
-		        shouldForceSync = true;
-		        return true;
-		    }
-		};
+	};
 }

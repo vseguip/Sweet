@@ -45,12 +45,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.github.vseguip.sweet.SweetAccountActivity;
-
-import android.accounts.AccountAuthenticatorActivity;
+import com.github.vseguip.sweet.SweetAuthenticatorActivity;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
+
 /*Imeplementa un API para acceder a SugarCRM
  * 
  * Basado en el ejemplo de SampleSyncAdapter.
@@ -62,12 +61,16 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String LOGIN_METHOD = "login";
 	public static final int TIMEOUT_OPS = 30 * 1000; // ms
 	private static URI mServer;
-	
-	
-	public SugarRestAPI(String server) throws URISyntaxException{
+
+	public SugarRestAPI(String server) throws URISyntaxException {
 		setServer(server);
 	}
-	public boolean validate(String username, String passwd,  Context context, Handler handler) {
+
+	public boolean validate(String username, String passwd, Context context, Handler handler) {
+		return getToken(username, passwd, context, handler) == null;
+	}
+
+	public String getToken(String username, String passwd, Context context, Handler handler) {
 		final HttpResponse resp;
 		HttpEntity entity = null;
 		try {
@@ -75,7 +78,7 @@ public class SugarRestAPI implements SugarAPI {
 			params.add(new BasicNameValuePair("method", LOGIN_METHOD));
 			params.add(new BasicNameValuePair("input_type", JSON));
 			params.add(new BasicNameValuePair("response_type", JSON));
-			
+
 			JSONObject jso_user = new JSONObject();
 			jso_user.put("user_name", username).put("password", encryptor(passwd));
 			JSONObject jso_content = new JSONObject();
@@ -83,7 +86,7 @@ public class SugarRestAPI implements SugarAPI {
 			jso_content.put("application", "Sweet");
 			params.add(new BasicNameValuePair("rest_data", jso_content.toString()));
 			entity = new UrlEncodedFormEntity(params);
-			
+
 		} catch (final UnsupportedEncodingException e) {
 			// this should never happen.
 			throw new AssertionError(e);
@@ -105,7 +108,7 @@ public class SugarRestAPI implements SugarAPI {
 				if (Log.isLoggable(TAG, Log.VERBOSE)) {
 					Log.v(TAG, "Successful authentication");
 				}
-				
+
 				// Buffer the result into a string
 				BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 				StringBuilder sb = new StringBuilder();
@@ -115,47 +118,50 @@ public class SugarRestAPI implements SugarAPI {
 				}
 				rd.close();
 				String message = sb.toString();
-				String str;
-				JSONObject json=null;
+				String authToken;
+				JSONObject json = null;
 				try {
-					json = (JSONObject)new JSONTokener(message).nextValue();
-					str = json.getString("id");
-				} catch (JSONException e) {					
+					json = (JSONObject) new JSONTokener(message).nextValue();
+					authToken = json.getString("id");
+				} catch (JSONException e) {
 					Log.i(TAG, "Error during login" + message);
-					if(json!=null){
-						if(json.has("description")){
-							try{
-							message = json.getString("description");//get errot message!
-							}catch(JSONException ex){
+					if (json != null) {
+						if (json.has("description")) {
+							try {
+								message = json.getString("description");// get
+																		// errot
+																		// message!
+							} catch (JSONException ex) {
 								e.printStackTrace();
-								Log.e(TAG,"JSON exception, should never have gotten here!");
-							};
+								Log.e(TAG, "JSON exception, should never have gotten here!");
+							}
+							;
 						}
 					}
-					sendResult(false,handler,context, "Error during login " + message);
-					return false;
-				}							
-				sendResult(true, handler, context, str);
-				return true;
+					sendResult(false, handler, context, "Error during login " + message);
+					return null;
+				}
+				sendResult(true, handler, context, authToken);
+				return authToken;
 			} else {
 				if (Log.isLoggable(TAG, Log.VERBOSE)) {
 					Log.v(TAG, "Error authenticating" + resp.getStatusLine());
 				}
 				sendResult(false, handler, context, "Error authenticating" + resp.getStatusLine());
-				return false;
+				return null;
 			}
 		} catch (final IOException e) {
 			if (Log.isLoggable(TAG, Log.VERBOSE)) {
 				Log.v(TAG, "IOException when getting authtoken", e);
 			}
 			sendResult(false, handler, context, "Error trying to connect to " + mServer.toString());
-			return false;
-		} catch(Exception e){
+			return null;
+		} catch (Exception e) {
 			e.printStackTrace();
-			sendResult(false, handler, context, "Error trying to validate your credentials. Check you server name and net connectivity.");
-			return false;
-		}
-		finally {
+			sendResult(false, handler, context,
+					"Error trying to validate your credentials. Check you server name and net connectivity.");
+			return null;
+		} finally {
 			if (Log.isLoggable(TAG, Log.VERBOSE)) {
 				Log.v(TAG, "getAuthtoken completing");
 			}
@@ -163,25 +169,31 @@ public class SugarRestAPI implements SugarAPI {
 
 	}
 
-	  /**
-     * Sends the authentication response from server back to the caller main UI
-     * thread through its handler.
-     * 
-     * @param result The boolean holding authentication result
-     * @param handler The main UI thread's handler instance.
-     * @param context The caller Activity's context.
-	 * @param message SessionID if login was successful or error message if it was not. 
-     */
-    private static void sendResult(final Boolean result, final Handler handler, final Context context, final String message) {
-        if (handler == null || context == null) {
-            return;
-        }
-        handler.post(new Runnable() {
-            public void run() {
-                ((SweetAccountActivity) context).onValidationResult(result, message);
-            }
-        });
-    }
+	/**
+	 * Sends the authentication response from server back to the caller main UI
+	 * thread through its handler.
+	 * 
+	 * @param result
+	 *            The boolean holding authentication result
+	 * @param handler
+	 *            The main UI thread's handler instance.
+	 * @param context
+	 *            The caller Activity's context.
+	 * @param message
+	 *            SessionID if login was successful or error message if it was
+	 *            not.
+	 */
+	private static void sendResult(final Boolean result, final Handler handler, final Context context,
+			final String message) {
+		if (handler == null || context == null) {
+			return;
+		}
+		handler.post(new Runnable() {
+			public void run() {
+				((SweetAuthenticatorActivity) context).onValidationResult(result, message);
+			}
+		});
+	}
 
 	private String encryptor(String password) {
 		String pwd = password;
@@ -197,7 +209,7 @@ public class SugarRestAPI implements SugarAPI {
 
 			StringBuffer hexString = new StringBuffer();
 			for (int i = 0; i < messageDigest.length; i++) {
-				hexString.append(String.format("%02x", 0xFF & messageDigest[i])); 
+				hexString.append(String.format("%02x", 0xFF & messageDigest[i]));
 			}
 			temppass = hexString.toString();
 		} catch (NoSuchAlgorithmException nsae) {
@@ -206,9 +218,10 @@ public class SugarRestAPI implements SugarAPI {
 
 		return temppass;
 	}
+
 	@Override
 	public void setServer(String server) throws URISyntaxException {
-		mServer = new URI(server);		
+		mServer = new URI(server);
 	}
 
 }

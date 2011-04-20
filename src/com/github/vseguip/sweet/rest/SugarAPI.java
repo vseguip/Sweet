@@ -25,7 +25,8 @@ import android.content.Context;
 import android.os.Handler;
 
 public interface SugarAPI {
-	public abstract void setServer(String server) throws URISyntaxException ;
-	public abstract boolean validate(String username, String passwd, Context context, Handler handler);
+	public abstract void setServer(String server) throws URISyntaxException;
+
+	public abstract String getToken(String username, String passwd, Context context, Handler handler);
 
 }

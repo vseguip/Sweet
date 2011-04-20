@@ -18,10 +18,8 @@ Public License along with Sweet.
 If not, see http://www.gnu.org/licenses/.  
 \********************************************************************/
 
-
-
-
 package com.github.vseguip.sweet;
+
 /**** Service that creates the authenticator object ****/
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.AccountManager;
@@ -33,13 +31,14 @@ import android.util.Log;
 public class SweetAuthenticatorService extends Service {
 	private static final String TAG = "SweethAuthenticatorService";
 	private AbstractAccountAuthenticator m_accountAuthenticator;
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		if (intent.getAction().equals(AccountManager.ACTION_AUTHENTICATOR_INTENT)) {
-			
+
 			return getAuthenticator().getIBinder();
 		}
-		Log.i(TAG, "Binding authenticator with intent "+ intent.getAction());
+		Log.i(TAG, "Binding authenticator with intent " + intent.getAction());
 		return getAuthenticator().getIBinder();
 	}
 

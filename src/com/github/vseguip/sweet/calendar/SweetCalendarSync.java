@@ -20,14 +20,11 @@ If not, see http://www.gnu.org/licenses/.
 package com.github.vseguip.sweet.calendar;
 
 import android.accounts.Account;
-import android.app.Service;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SyncResult;
 import android.os.Bundle;
-import android.os.IBinder;
 
 public class SweetCalendarSync extends AbstractThreadedSyncAdapter {
 
@@ -40,7 +37,7 @@ public class SweetCalendarSync extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider,
 			SyncResult syncResult) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

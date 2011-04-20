@@ -23,10 +23,14 @@ import java.net.URISyntaxException;
 
 public class SugarAPIFactory {
 	private static SugarRestAPI api;
-	public static synchronized SugarAPI getSugarAPI(String server) throws URISyntaxException{
-		if(api==null)
-			api =new SugarRestAPI(server); 
+
+	public static synchronized SugarAPI getSugarAPI(String server) throws URISyntaxException {
+		if (api == null) {
+			api = new SugarRestAPI(server);
+		} else {
+			api.setServer(server);
+		}
 		return api;
 	}
-	
+
 }

@@ -20,7 +20,7 @@ If not, see http://www.gnu.org/licenses/.
 package com.github.vseguip.sweet.calendar;
 
 public class SweetCalendarManagerFactory {
-	public SweetCalendarManager getCalendarManager(){
+	public SweetCalendarManager getCalendarManager() {
 		return new SweetCalendarManagerPrivate();
 	}
 }
