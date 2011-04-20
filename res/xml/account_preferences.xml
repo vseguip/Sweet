@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceScreen android:key="account_settings"
+		android:title="Sweet synchronization settings" android:summary="Sync contacts, calendar and notifications.">
+		<intent android:action="android.provider.Settings.ACTION_SYNC_SETTINGS"
+			android:targetPackage="com.github.vseguip.sweet"
+			android:targetClass="com.github.vseguip.sweet.SweetAccountPreferences" />
+	</PreferenceScreen>
+
+</PreferenceScreen>

@@ -1,12 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/hello"
-    />
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<ViewFlipper android:id="@+id/ViewFlipper01"
+		android:layout_width="fill_parent" android:layout_height="fill_parent">
+		<LinearLayout android:orientation="vertical"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="0dip" android:layout_weight="1"
+				android:orientation="vertical">
+
+				<TextView android:text="@+string/username" android:id="@+id/TextView01"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+				<EditText android:text="@+string/username" android:id="@+id/EditUserName"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"></EditText>
+				<TextView android:text="@+string/password" android:id="@+id/TextView02"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+				<EditText android:text="@+string/password" android:id="@+id/EditPassword"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:password="true"></EditText>
+				<TextView android:text="@+string/server" android:id="@+id/TextView03"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+				<EditText android:text="@+string/server" android:id="@+id/EditServer"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"></EditText>
+
+				<CheckBox android:text="@+string/acceptcerts" android:id="@+id/CheckAcceptCerts"
+					android:textAppearance="?android:attr/textAppearanceLarge"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+
+			</LinearLayout>
+			<LinearLayout android:layout_width="wrap_content"
+				style="@android:style/ButtonBar" android:orientation="vertical"
+				android:layout_height="wrap_content" android:layout_gravity="bottom">
+				<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:layout_gravity="bottom" android:stretchColumns="0,1">
+
+					<TableRow>
+						<Button android:layout_height="fill_parent" android:text="@string/cancel"
+							android:id="@+id/buttonCancel" android:layout_width="fill_parent"
+							android:layout_column="0">
+						</Button>
+						<Button android:layout_height="fill_parent" android:text="@string/validate"
+							android:id="@+id/buttonValidate" android:layout_width="fill_parent"
+							android:layout_column="1">
+						</Button>
+
+
+					</TableRow>
+
+				</TableLayout>
+			</LinearLayout>
+		</LinearLayout>
+		<LinearLayout android:orientation="vertical"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="0dip" android:layout_weight="1"
+				android:orientation="vertical">
+
+				<TextView android:text="@string/validationOk" android:id="@+id/TextView03"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:textAppearance="?android:attr/textAppearanceLarge" />
+			</LinearLayout>
+			<LinearLayout android:layout_width="wrap_content"
+				style="@android:style/ButtonBar" android:orientation="vertical"
+				android:layout_height="wrap_content" android:layout_gravity="bottom">
+				<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:layout_gravity="bottom" android:stretchColumns="0,1">
+
+					<TableRow>
+						<Button android:layout_height="fill_parent" android:text="@string/back"
+							android:id="@+id/buttonBack" android:layout_width="fill_parent"
+							android:layout_column="0">
+						</Button>
+						<Button android:layout_height="fill_parent" android:text="@string/createAccount"
+							android:id="@+id/buttonCreate" android:layout_width="fill_parent"
+							android:layout_column="1">
+						</Button>
+
+
+					</TableRow>
+
+				</TableLayout>
+			</LinearLayout>
+
+		</LinearLayout>
+	</ViewFlipper>
 </LinearLayout>

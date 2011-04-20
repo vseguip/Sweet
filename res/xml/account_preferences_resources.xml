@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory android:title="@string/sync_preferences">
+
+		<CheckBoxPreference android:key="sync_contacts"
+			android:defaultValue="true" android:summary="@string/sync_contacts_summary"
+			android:title="@string/sync_contacts_title" />
+		<CheckBoxPreference android:key="sync_calendar"
+			android:defaultValue="true" android:summary="@string/sync_calendar_summary"
+			android:title="@string/sync_calendar_title" />
+		<CheckBoxPreference android:key="sync_notifications"
+			android:defaultValue="true" android:summary="@string/sync_notifications_summary"
+			android:title="@string/sync_notifications_title" />
+	</PreferenceCategory>
+</PreferenceScreen>
