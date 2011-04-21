@@ -86,6 +86,7 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 	}
 
 	private boolean validateUser(String username, String passwd, String server) {
+		Log.i(TAG, "validateUser()");
 		return getServerAuthToken(username, passwd, server) == null;
 	}
 

@@ -25,17 +25,21 @@ import android.app.Service;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 public class SweetSyncService extends Service {
+	private final String TAG = "SweetSyncService";
 	private AbstractThreadedSyncAdapter mSyncAdapter = null;
 
 	@Override
 	public IBinder onBind(Intent intent) {
+		Log.i(TAG, "inBind() " + intent.getAction());
 		return getSyncAdapter().getSyncAdapterBinder();
 
 	}
 
 	private synchronized AbstractThreadedSyncAdapter getSyncAdapter() {
+		Log.i(TAG, "getSyncAdapter()");
 		if (mSyncAdapter == null) {
 			mSyncAdapter = new SweetContactSync(this, true);
 		}
