@@ -132,8 +132,10 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		Log.i(TAG, "finishConfirmCredentials()");
 		String username = mUserEdit.getText().toString();
 		String passwd = mPasswdEdit.getText().toString();
+		String server = mServerEdit.getText().toString();
 		final Account account = new Account(username, ACCOUNT_TYPE);
 		mAccountManager.setPassword(account, passwd);
+		mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
 		final Intent intent = new Intent();
 		intent.putExtra(AccountManager.KEY_BOOLEAN_RESULT, true);
 		setAccountAuthenticatorResult(intent.getExtras());
@@ -151,8 +153,9 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		final Account account = new Account(username, ACCOUNT_TYPE);
 		if (mCreateAccount) {
 			Bundle serverData = new Bundle();
-			serverData.putString(KEY_PARAM_SERVER, server);
+			//serverData.putString(KEY_PARAM_SERVER, server);
 			mAccountManager.addAccountExplicitly(account, passwd, serverData);
+			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
 			// Set contacts sync for this account.
 			// ContentResolver.setSyncAutomatically(account,
 			// ContactsContract.AUTHORITY, true);
