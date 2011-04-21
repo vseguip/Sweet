@@ -3,5 +3,4 @@
     android:contentAuthority="com.android.contacts"
     android:accountType="com.github.vseguip.sweet.account"
     android:supportsUploading="false"
-    android:label="Sync all"
 />
