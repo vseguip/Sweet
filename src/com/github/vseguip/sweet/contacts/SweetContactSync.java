@@ -20,25 +20,99 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.contacts;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import org.apache.http.auth.AuthenticationException;
+
+import com.github.vseguip.sweet.R;
+import com.github.vseguip.sweet.SweetAuthenticatorActivity;
+import com.github.vseguip.sweet.rest.SugarAPI;
+import com.github.vseguip.sweet.rest.SugarAPIFactory;
+
 import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
+import android.util.Log;
 
 public class SweetContactSync extends AbstractThreadedSyncAdapter {
-
+	Context mContext;
+	private String AUTH_TOKEN_TYPE;
+	private AccountManager mAccountManager;
+	private String mAuthToken;
+	private final String TAG = "SweetContactSync";
 	public SweetContactSync(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
-		// TODO Auto-generated constructor stub
+		Log.i(TAG, "SweetContactSync");
+		mContext = context;
+		AUTH_TOKEN_TYPE = mContext.getString(R.string.account_type);		
+		mAccountManager = AccountManager.get(mContext);
+	}
+
+	public interface ISugarRunnable {
+		public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException, IOException,
+				AuthenticationException;
+	}
+
+	class SugarRunnable implements Runnable {
+		ISugarRunnable r;
+		Account mAccount;
+
+		public SugarRunnable(Account acc, ISugarRunnable _r) {
+			r = _r;
+			mAccount = acc;
+		}
+
+		@Override
+		public void run() {
+			try {
+				r.run();
+			} catch (URISyntaxException ex) {
+				if (mAccount != null)
+					mAccountManager.confirmCredentials(mAccount, null, null, null, null);
+			} catch (OperationCanceledException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthenticatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthenticationException aex) {
+				if (SweetContactSync.this.mAuthToken != null) {
+					mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);
+				}
+			}
+
+		}
+
 	}
 
 	@Override
-	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider,
+	public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider,
 			SyncResult syncResult) {
-		// TODO Auto-generated method stub
-
+		performNetOperation(new SugarRunnable(account, new ISugarRunnable() {
+			@Override
+			public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException,
+					IOException, AuthenticationException {
+				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
+				mAuthToken =  mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE	, true);
+				
+				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
+				sugar.getNewerContacts(mAuthToken, null);
+			}
+		}));
 	}
 
+	void performNetOperation(Runnable r) {
+		// TODO: Run in background?
+		r.run();
+	}
 }
