@@ -19,14 +19,26 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.rest;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Date;
+
+import org.apache.http.auth.AuthenticationException;
 
 import android.content.Context;
 import android.os.Handler;
 
 public interface SugarAPI {
 	public abstract void setServer(String server) throws URISyntaxException;
-
+	/* Get contacts created, modified or deleted since a date.
+	 *  
+	 * @param token
+	 *            The SessionID token gotten by getToken 
+	 * @param date
+	 *         	  The date we want to use as a comparison.    
+	 * 
+	 */
+	public void getNewerContacts(String token, Date date) throws AuthenticationException, IOException;
 	public abstract String getToken(String username, String passwd, Context context, Handler handler);
 
 }
