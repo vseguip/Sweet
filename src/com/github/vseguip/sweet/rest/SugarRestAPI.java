@@ -279,7 +279,9 @@ public class SugarRestAPI implements SugarAPI {
 	}
 
 	/**
-	 * @return
+	 * Get an HttpConnection object. Will create a new one if needed.
+	 * 
+	 * @return A defualt HTTP connection object
 	 */
 	private HttpClient getConnection() {
 		if (mHttpClient == null) {
