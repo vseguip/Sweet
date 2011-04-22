@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,6 +50,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.github.vseguip.sweet.SweetAuthenticatorActivity;
+import com.github.vseguip.sweet.contacts.ISweetContact;
+
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -59,12 +62,21 @@ import android.util.Log;
  * 
  * */
 public class SugarRestAPI implements SugarAPI {
+
+	private static final int TIMEOUT_OPS = 30 * 1000; // ms
+
+	private static final String KEY_PARAM_RESPONSE_TYPE = "response_type";
+	private static final String KEY_PARAM_INPUT_TYPE = "input_type";
+	private static final String KEY_PARAM_METHOD = "method";
 	private static final String JSON = "JSON";
 	private static final String TAG = "SugarRestAPI";
 	private static final String LOGIN_METHOD = "login";
 	private static final String GET_METHOD = "get_entry_list";
-	private static final String CONTACTS_MODULE = "contacts";
-	public static final int TIMEOUT_OPS = 30 * 1000; // ms
+
+	private static final String SUGAR_MODULE_CONTACTS = "Contacts";
+	private static final String SUGAR_CONTACTS_QUERY = "";
+	private static final String SUGAR_CONTACT_LINK_NAMES = "";
+	private static final Object SUGAR_CONTACTS_ORDER_BY = "";
 	private static URI mServer;
 	private HttpClient mHttpClient;
 
@@ -79,30 +91,15 @@ public class SugarRestAPI implements SugarAPI {
 	public String getToken(String username, String passwd, Context context, Handler handler) {
 		final HttpResponse resp;
 		HttpEntity entity = null;
+		JSONObject jso_content = new JSONObject();
 		try {
-			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("method", LOGIN_METHOD));
-			params.add(new BasicNameValuePair("input_type", JSON));
-			params.add(new BasicNameValuePair("response_type", JSON));
-
 			JSONObject jso_user = new JSONObject();
 			jso_user.put("user_name", username).put("password", encryptor(passwd));
-			JSONObject jso_content = new JSONObject();
-			jso_content.put("user_auth", jso_user);
-			jso_content.put("application", "Sweet");
-			params.add(new BasicNameValuePair("rest_data", jso_content.toString()));
-			entity = new UrlEncodedFormEntity(params);
-
-		} catch (final UnsupportedEncodingException e) {
-			// this should never happen.
-			throw new AssertionError(e);
+			jso_content.put("user_auth", jso_user).put("application", "Sweet");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		final HttpPost post = new HttpPost(mServer);
-		post.addHeader(entity.getContentType());
-		post.setEntity(entity);
-
+		final HttpPost post = prepareJSONRequest(jso_content.toString(), LOGIN_METHOD);
 		HttpClient httpClient = getConnection();
 		try {
 			resp = httpClient.execute(post);
@@ -123,9 +120,9 @@ public class SugarRestAPI implements SugarAPI {
 				String authToken;
 				JSONObject json = null;
 				try {
-					//TODO: Convert JSON to contacts
+					// TODO: Convert JSON to contacts
 					json = (JSONObject) new JSONTokener(message).nextValue();
-					authToken = json.getString("result_count");
+					authToken = json.getString("id");
 				} catch (JSONException e) {
 					Log.i(TAG, "Error during login" + message);
 					if (json != null) {
@@ -170,6 +167,115 @@ public class SugarRestAPI implements SugarAPI {
 			}
 		}
 
+	}
+
+	@Override
+	/* {@inheritDoc} */
+	public List<ISweetContact> getNewerContacts(String token, Date date) throws IOException, AuthenticationException {
+		final HttpResponse resp;
+		Log.i(TAG, "getNewerContacts()");
+
+		JSONArray jso_array = new JSONArray();
+		JSONArray jso_fields = new JSONArray();
+		jso_fields.put("id").put("first_name").put("last_name").put("title").put("account_name").put("account_id")
+				.put("email1").put("phone_work");
+		//TODO: Prepare new date data!
+		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(SUGAR_CONTACTS_QUERY).put(SUGAR_CONTACTS_ORDER_BY).put(
+				0).put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
+
+		final HttpPost post = prepareJSONRequest(jso_array.toString(), GET_METHOD);
+		HttpClient httpClient = getConnection();
+		Log.i(TAG, "Sending request");
+		resp = httpClient.execute(post);
+		Log.i(TAG, "Got response");
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			if (Log.isLoggable(TAG, Log.VERBOSE)) {
+				Log.v(TAG, "Successful authentication");
+			}
+			Log.i(TAG, "Buffering request");
+			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+			List<ISweetContact> contacts = new ArrayList<ISweetContact>();
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) {
+				sb.append(line);
+			}
+			rd.close();
+			String message = sb.toString();
+			JSONArray result;
+			JSONObject json = null;
+			try {
+				Log.i(TAG, "Parsing response");
+				json = (JSONObject) new JSONTokener(message).nextValue();
+				result = json.getJSONArray("entry_list");
+				Log.i(TAG, "Creating contact objects");
+				for (int i = 0; i < result.length(); i++) {
+					try {
+						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
+						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), entrada
+								.getJSONObject("first_name").getString("value"), entrada.getJSONObject("last_name")
+								.getString("value"), entrada.getJSONObject("title").getString("value"), entrada
+								.getJSONObject("account_name").getString("value"), entrada.getJSONObject("account_id")
+								.getString("value"), entrada.getJSONObject("email1").getString("value"), entrada
+								.getJSONObject("phone_work").getString("value")));
+					} catch (Exception ex) {
+						ex.printStackTrace();
+						Log.e(TAG, "Unknown error parsing, skipping entry");
+					}
+				}
+
+				return contacts;
+			} catch (Exception e) {
+				if (json != null) {
+					Log.i(TAG, "Error parsing json in getNewerContacts. Auth invalid");
+					try {
+
+						throw new AuthenticationException(json.getString("description"));
+					} catch (JSONException ex) {
+						throw new AuthenticationException("Invalid session");
+					}
+				}
+			}
+		} else {
+			if (Log.isLoggable(TAG, Log.VERBOSE)) {
+				Log.v(TAG, "Error authenticating" + resp.getStatusLine());
+				throw new AuthenticationException("Invalid session");
+
+			}
+
+		}
+		return null;
+	}	
+	
+	/**
+	 * Prepares a JSON request encoding the method and the associated JSON data
+	 * for a Sugar REST API call and returns an HTTP Post object
+	 * 
+	 * 
+	 * @param rest_data The string representation of the JSON encoded request and parameters.
+	 * @param method The Sugar REST API method to call.
+	 * @return The HttpPost representing the Sugar REST Api Call
+	 * @throws AssertionError
+	 */
+	private HttpPost  prepareJSONRequest(String rest_data, String method) throws AssertionError {
+		HttpEntity entity = null;
+		try {
+			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
+			params.add(new BasicNameValuePair(KEY_PARAM_METHOD, method));
+			params.add(new BasicNameValuePair(KEY_PARAM_INPUT_TYPE, JSON));
+			params.add(new BasicNameValuePair(KEY_PARAM_RESPONSE_TYPE, JSON));
+
+			params.add(new BasicNameValuePair("rest_data", rest_data));
+			entity = new UrlEncodedFormEntity(params);
+			final HttpPost post = new HttpPost(mServer);
+			post.addHeader(entity.getContentType());
+			post.setEntity(entity);
+			return post;
+
+		} catch (final UnsupportedEncodingException e) {
+			// this should never happen.
+			throw new AssertionError(e);
+		}
 	}
 
 	/**
@@ -243,122 +349,5 @@ public class SugarRestAPI implements SugarAPI {
 		mServer = new URI(server);
 	}
 
-	@Override
-	/* {@inheritDoc} */
-	public void getNewerContacts(String token, Date date) throws IOException, AuthenticationException {
-		final HttpResponse resp;
-		HttpEntity entity = null;
-		try {
-			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new BasicNameValuePair("method", GET_METHOD));
-			params.add(new BasicNameValuePair("input_type", JSON));
-			params.add(new BasicNameValuePair("response_type", JSON));
-			JSONArray jso_fields = new JSONArray();
-			jso_fields.put("id");
-			jso_fields.put("first_name");
-			jso_fields.put("last_name");
-			jso_fields.put("account_name");
-			jso_fields.put("account_id");
-			jso_fields.put("email1");
-			jso_fields.put("phone_work");
-			JSONArray jso_array = new JSONArray();
-			jso_array.put(token);
-			jso_array.put("Contacts");
-			// TODO: Use date to fill this quer
-			jso_array.put("");
-			//order by?
-			jso_array.put("");
-			//offset
-			jso_array.put(0);
-			// TODO: Use only relevant fields!
-			jso_array.put(jso_fields);
-			//link name fields??
-			jso_array.put("");
-			//max results
-			jso_array.put(1000);
-			jso_array.put(0);
-			String rest_data = jso_array.toString();
-			//			
-			// jso_content.put("session", token);
-			// jso_content.put("module_name", "Contacts");
-			// // TODO: Use date to fill this
-			// jso_content.put("query", "");
-			// jso_content.put("order_by", "");
-			// jso_content.put("offset", 0);
-			// // TODO: Use only relevant fields!
-			// jso_content.put("select_fields", "");
-			// jso_content.put("link_name_fields", "");
-			// jso_content.put("max_results", "");
-			// jso_content.put("deleted", 1);
-			// String rest_data = jso_content.toString();
-			params.add(new BasicNameValuePair("rest_data", rest_data));
-			entity = new UrlEncodedFormEntity(params);
 
-		} catch (final UnsupportedEncodingException e) {
-			// this should never happen.
-			throw new AssertionError(e);
-		}
-		final HttpPost post = new HttpPost(mServer);
-		post.addHeader(entity.getContentType());
-		post.setEntity(entity);
-
-		HttpClient httpClient = getConnection();
-
-		resp = mHttpClient.execute(post);
-		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			if (Log.isLoggable(TAG, Log.VERBOSE)) {
-				Log.v(TAG, "Successful authentication");
-			}
-
-			// Buffer the result into a string
-			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-			StringBuilder sb = new StringBuilder();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				sb.append(line);
-			}
-			rd.close();
-			String message = sb.toString();
-			String authToken;
-			JSONObject json = null;
-			try {
-				json = (JSONObject) new JSONTokener(message).nextValue();
-				authToken = json.getString("id");
-			} catch (JSONException e) {
-				if (json != null)
-					try {
-						throw new AuthenticationException(json.getString("description"));
-					} catch (JSONException ex) {
-						throw new AuthenticationException("Invalid session");
-					}
-				// Log.i(TAG, "Error during login" + message);
-				// if (json != null) {
-				// if (json.has("description")) {
-				// try {
-				// message = json.getString("number");// get
-				// if(id=="")
-				// } catch (JSONException ex) {
-				// e.printStackTrace();
-				// Log.e(TAG,
-				// "JSON exception, should never have gotten here!");
-				// }
-				// ;
-				// }
-				// }
-				// sendResult(false, handler, context, "Error during login "
-				// + message);
-				// return null;
-			}
-			// sendResult(true, handler, context, authToken);
-			// return authToken;
-		} else {
-			if (Log.isLoggable(TAG, Log.VERBOSE)) {
-				Log.v(TAG, "Error authenticating" + resp.getStatusLine());
-			}
-			// sendResult(false, handler, context, "Error authenticating" +
-			// resp.getStatusLine());
-			// return null;
-		}
-
-	}
 }

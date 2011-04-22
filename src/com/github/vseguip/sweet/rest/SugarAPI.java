@@ -22,8 +22,11 @@ package com.github.vseguip.sweet.rest;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.auth.AuthenticationException;
+
+import com.github.vseguip.sweet.contacts.ISweetContact;
 
 import android.content.Context;
 import android.os.Handler;
@@ -38,7 +41,7 @@ public interface SugarAPI {
 	 *         	  The date we want to use as a comparison.    
 	 * 
 	 */
-	public void getNewerContacts(String token, Date date) throws AuthenticationException, IOException;
+	public List<ISweetContact> getNewerContacts(String token, Date date) throws AuthenticationException, IOException;
 	public abstract String getToken(String username, String passwd, Context context, Handler handler);
 
 }

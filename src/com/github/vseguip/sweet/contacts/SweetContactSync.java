@@ -22,6 +22,7 @@ package com.github.vseguip.sweet.contacts;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.apache.http.auth.AuthenticationException;
 
@@ -87,7 +88,9 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				e.printStackTrace();
 			} catch (AuthenticationException aex) {
 				if (SweetContactSync.this.mAuthToken != null) {
-					mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);
+					mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);					
+				} else {
+					mAccountManager.confirmCredentials(mAccount, null, null, null, null);
 				}
 			}
 
@@ -98,15 +101,20 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 	@Override
 	public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider,
 			SyncResult syncResult) {
+		Log.i(TAG,"onPerformSync()");
 		performNetOperation(new SugarRunnable(account, new ISugarRunnable() {
 			@Override
 			public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException,
 					IOException, AuthenticationException {
+				Log.i(TAG,"Running PerformSync closure()");
 				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
 				mAuthToken =  mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE	, true);
 				
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
-				sugar.getNewerContacts(mAuthToken, null);
+				List<ISweetContact> contacts = sugar.getNewerContacts(mAuthToken, null);
+				for(ISweetContact c: contacts){
+					Log.i(TAG, "Retreived contact " + c.getFirstName());
+				}
 			}
 		}));
 	}
