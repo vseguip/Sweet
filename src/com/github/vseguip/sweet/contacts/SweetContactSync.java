@@ -112,13 +112,12 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
 				List<ISweetContact> contacts = sugar.getNewerContacts(mAuthToken, null);
-				for(ISweetContact c: contacts){
-					Log.i(TAG, "Retreived contact " + c.getFirstName());
-				}
+				ContactManager.syncContacts(mContext, account, contacts);
 			}
 		}));
 	}
 
+	
 	void performNetOperation(Runnable r) {
 		// TODO: Run in background?
 		r.run();
