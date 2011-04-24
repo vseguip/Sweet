@@ -38,8 +38,7 @@ public class SweetContact implements ISweetContact {
 		values.put(ACCOUNT_NAME_KEY, accountName);
 		values.put(ACCOUNT_ID_KEY, accountId);
 		values.put(EMAIL1_KEY, email1);
-		values.put(PHONE_WORK_KEY, phoneWork);
-		values.put(DISPLAY_NAME_KEY, firstName +  " " + lastName);
+		values.put(PHONE_WORK_KEY, phoneWork);		
 	}
 	
 	public String getId() {
@@ -49,24 +48,19 @@ public class SweetContact implements ISweetContact {
 	public void setId(String id) {
 		values.put(ID_KEY, id);		
 	}
-
-	public String getDisplayName() {
-		return values.get(DISPLAY_NAME_KEY);
-	}
+	
 	public String getFirstName() {
 		return values.get(FIRST_NAME_KEY);
 	}
 
 	public void setFirstName(String firstName) {
-		values.put(FIRST_NAME_KEY, firstName);
-		values.put(DISPLAY_NAME_KEY, firstName +  " " + getLastName());
+		values.put(FIRST_NAME_KEY, firstName);		
 	}
 	public String getLastName() {
 		return values.get(LAST_NAME_KEY);
 	}
 	public void setLastName(String lastName) {
-		values.put(LAST_NAME_KEY, lastName);
-		values.put(DISPLAY_NAME_KEY, getFirstName() +  " " + lastName);
+		values.put(LAST_NAME_KEY, lastName);		
 	}
 	public String getTitle() {
 		return values.get(TITLE_KEY);
@@ -99,8 +93,7 @@ public class SweetContact implements ISweetContact {
 		values.put(PHONE_WORK_KEY, phoneWork);
 	}
 	public void set(String field, String data) {
-		values.put(field, data);
-		values.put(DISPLAY_NAME_KEY, getFirstName() +  " " + getLastName());
+		values.put(field, data);		
 	}
 	public String get(String field) {
 		return values.get(field);

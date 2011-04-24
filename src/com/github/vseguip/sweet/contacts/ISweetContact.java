@@ -27,13 +27,10 @@ public interface ISweetContact {
 	public static final String TITLE_KEY = "title";
 	public static final String LAST_NAME_KEY = "lastName";
 	public static final String FIRST_NAME_KEY = "firstName";
-	public static final String DISPLAY_NAME_KEY = "displayName";
 	public static final String ID_KEY = "id";
 	public String getId();
 	public void setId(String id);
 
-	public String getDisplayName();
-	
 	public String getFirstName();
 	public void setFirstName(String firstName);
 	
