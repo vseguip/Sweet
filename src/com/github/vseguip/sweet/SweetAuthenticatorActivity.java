@@ -7,9 +7,11 @@ import com.github.vseguip.sweet.rest.SugarAPIFactory;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -56,6 +58,7 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		Log.i(TAG, "onCreate(" + savedInstanceState + ")");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		Log.e(TAG, "Content authority: " + ContactsContract.AUTHORITY);
 		ACCOUNT_TYPE = getString(R.string.account_type);
 		final Intent intent = getIntent();
 		mAccountManager = AccountManager.get(this);
@@ -157,8 +160,7 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 			mAccountManager.addAccountExplicitly(account, passwd, serverData);
 			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
 			// Set contacts sync for this account.
-			// ContentResolver.setSyncAutomatically(account,
-			// ContactsContract.AUTHORITY, true);
+			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
 		} else {
 			mAccountManager.setPassword(account, passwd);
 		}
