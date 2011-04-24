@@ -90,7 +90,6 @@ public class SugarRestAPI implements SugarAPI {
 
 	public String getToken(String username, String passwd, Context context, Handler handler) {
 		final HttpResponse resp;
-		HttpEntity entity = null;
 		JSONObject jso_content = new JSONObject();
 		try {
 			JSONObject jso_user = new JSONObject();
@@ -170,7 +169,7 @@ public class SugarRestAPI implements SugarAPI {
 	}
 
 	@Override
-	/* {@inheritDoc} */
+	/** {@inheritDoc} */
 	public List<ISweetContact> getNewerContacts(String token, Date date) throws IOException, AuthenticationException {
 		final HttpResponse resp;
 		Log.i(TAG, "getNewerContacts()");

@@ -33,7 +33,8 @@ import android.os.Handler;
 
 public interface SugarAPI {
 	public abstract void setServer(String server) throws URISyntaxException;
-	/* Get contacts created, modified or deleted since a date.
+	/**
+	 *  Get contacts created, modified or deleted since a date.
 	 *  
 	 * @param token
 	 *            The SessionID token gotten by getToken 
