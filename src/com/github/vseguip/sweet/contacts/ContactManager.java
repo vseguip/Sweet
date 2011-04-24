@@ -28,6 +28,7 @@ import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
@@ -35,6 +36,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -51,18 +53,18 @@ public class ContactManager {
 	private static String SOURCE_ID_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.SOURCE_ID + "=?";
 
 	private static class ContactFields {
-		private static String[] FIELDS = { ISweetContact.DISPLAY_NAME_KEY, ISweetContact.FIRST_NAME_KEY, ISweetContact.LAST_NAME_KEY,
-				ISweetContact.TITLE_KEY, ISweetContact.ACCOUNT_NAME_KEY, ISweetContact.EMAIL1_KEY,
-				ISweetContact.PHONE_WORK_KEY };
+		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
+				ISweetContact.EMAIL1_KEY, ISweetContact.PHONE_WORK_KEY };
 
-		private static String[] MIMETYPE_KEYS = { StructuredName.MIMETYPE, StructuredName.MIMETYPE, StructuredName.MIMETYPE,
-				Organization.MIMETYPE, Organization.MIMETYPE, Email.MIMETYPE, Phone.MIMETYPE };
-		private static String[] MIMETYPES = { StructuredName.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE,
-				Organization.CONTENT_ITEM_TYPE, Organization.CONTENT_ITEM_TYPE, Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE };
-		private static String[] DATA_KEYS = { StructuredName.DISPLAY_NAME, StructuredName.GIVEN_NAME, StructuredName.FAMILY_NAME,
-				Organization.TITLE, Organization.COMPANY, Email.DATA, Phone.NUMBER };
-		private static String[] TYPE_KEYS = { null, null, null, null, null, Email.TYPE, Phone.TYPE };
-		private static Integer[] TYPES = { null, null, null, null, null, Email.TYPE_WORK, Phone.TYPE_WORK };
+		private static String[] MIMETYPE_KEYS = { StructuredName.MIMETYPE, Organization.MIMETYPE, Email.MIMETYPE,
+				Phone.MIMETYPE };
+		private static String[] MIMETYPES = { StructuredName.CONTENT_ITEM_TYPE, Organization.CONTENT_ITEM_TYPE,
+				Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE };
+		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA, Phone.NUMBER };
+		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE };
+		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK };
+		private static String[] EXTRA_KEYS = { StructuredName.FAMILY_NAME, Organization.TITLE, null, null };
+		private static String[] EXTRA_FIELDS = { ISweetContact.LAST_NAME_KEY, ISweetContact.TITLE_KEY, null, null };
 	}
 
 	/**
@@ -80,15 +82,39 @@ public class ContactManager {
 		getAccountType(context);
 		ContentResolver resolver = context.getContentResolver();
 		Log.i(TAG, "Starting to sync locally");
+		int i = 0;
 		for (ISweetContact c : contacts) {
-			long local = findLocalContact(resolver, c.getId());
-			if (local == 0) {
+
+			long localId = findLocalContact(resolver, c.getId());
+			if (localId == 0) {
 				addContact(resolver, ops, acc.name, c);
+			} else {
+				updateContact(resolver, ops, acc.name, c, localId);
 			}
+			i++;
+			try {
+				if (i % 100 == 0) {
+					Log.e(TAG, "Applying " + ops.size() + " operations in a batch");
+					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+					ops.clear();
+				}
+
+			} catch (RemoteException e) {
+				Log.e(TAG, "Error applying the when syncing");
+				e.printStackTrace();
+			} catch (OperationApplicationException e) {
+				Log.e(TAG, "Error applying the when syncing");
+				e.printStackTrace();
+			}
+
 		}
 		try {
-			Log.e(TAG, "Applying "+ ops.size() + " operations in a batch");
-			resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+			// Do the last pending ops
+			if (ops.size() > 0) {
+				Log.e(TAG, "Applying " + ops.size() + " operations in a batch");
+				resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+				ops.clear();
+			}
 
 		} catch (RemoteException e) {
 			Log.e(TAG, "Error applying the when syncing");
@@ -97,6 +123,7 @@ public class ContactManager {
 			Log.e(TAG, "Error applying the when syncing");
 			e.printStackTrace();
 		}
+
 		return 0;
 	}
 
@@ -134,7 +161,7 @@ public class ContactManager {
 	 *            The contact we want to add
 	 */
 	private static void addContact(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
-			String accountName, ISweetContact contact) {		
+			String accountName, ISweetContact contact) {
 		ContentValues values = new ContentValues();
 		int reference = ops.size();
 		// Basic data
@@ -145,6 +172,22 @@ public class ContactManager {
 		builder.withValues(values);
 		ops.add(builder.build());
 		addContactData(ops, contact, values, reference);
+	}
+
+	/**
+	 * Updates a contact in the database
+	 * 
+	 * @param resolver
+	 *            The content resolver
+	 * @param ops
+	 *            The batch operations object
+	 * @param contact
+	 *            The contact we want to add
+	 */
+	private static void updateContact(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
+			String accountName, ISweetContact contact, long rawId) {
+		ContentValues values = new ContentValues();
+		updateContactData(ops, contact, values, rawId);
 	}
 
 	/**
@@ -171,19 +214,76 @@ public class ContactManager {
 				String data = contact.get(field);
 				String type_key = ContactFields.TYPE_KEYS[i];
 				Integer type = ContactFields.TYPES[i];
+				String extra_key = ContactFields.EXTRA_KEYS[i];
+				String extra_field = ContactFields.EXTRA_FIELDS[i];
 				values.clear();
 				ContentProviderOperation.Builder builder = getDataInsertBuilder();
+				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
+					values.put(Data.SYNC1, field);// insert wich field generated
+					// this row, will make it
+					// easy to retrieve later
+					// on!
+					values.put(mimetype_key, mimetype);
+					values.put(data_key, data);
+					if (type_key != null)
+						values.put(type_key, type);
+					if (extra_key != null)
+						values.put(extra_key, contact.get(extra_field));
+					builder.withValues(values);
+					builder.withValueBackReference(Data.RAW_CONTACT_ID, reference);
+					ops.add(builder.build());
+				}
+
+			} catch (ArrayIndexOutOfBoundsException ex) {
+				Log.e(TAG, "Unknown error ocurred trying to get fields: " + ex.getMessage());
+				ex.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Updates contact data
+	 * 
+	 * @param ops
+	 *            batch operations
+	 * @param contact
+	 *            the contact
+	 * @param values
+	 *            A recycled values object
+	 * @param reference
+	 *            The back reference for the raw contact op
+	 */
+	private static void updateContactData(ArrayList<ContentProviderOperation> ops, ISweetContact contact,
+			ContentValues values, long rawId) {
+
+		for (int i = 0; i < ContactFields.FIELDS.length; i++) {
+			try {
+				String field = ContactFields.FIELDS[i];
+				String mimetype_key = ContactFields.MIMETYPE_KEYS[i];
+				String mimetype = ContactFields.MIMETYPES[i];
+				String data_key = ContactFields.DATA_KEYS[i];
+				String data = contact.get(field);
+				String type_key = ContactFields.TYPE_KEYS[i];
+				Integer type = ContactFields.TYPES[i];
+				String extra_key = ContactFields.EXTRA_KEYS[i];
+				String extra_field = ContactFields.EXTRA_FIELDS[i];
+				values.clear();
+				ContentProviderOperation.Builder builder = getDataUpdateBuilder(rawId);
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 					values.put(mimetype_key, mimetype);
 					values.put(data_key, data);
 					if (type_key != null)
 						values.put(type_key, type);
+					if (extra_key != null)
+						values.put(extra_key, contact.get(extra_field));
+					builder.withValues(values);
+					builder.withSelection(Data.RAW_CONTACT_ID + "=?" + " AND " + Data.SYNC1 + "=?", new String[] {
+							Long.toString(rawId), field });
+					ops.add(builder.build());
 				}
-				builder.withValues(values);
-				builder.withValueBackReference(Data.RAW_CONTACT_ID, reference);
-				ops.add(builder.build());
+
 			} catch (ArrayIndexOutOfBoundsException ex) {
-				Log.e(TAG,"Unknown error ocurred trying to get fields: " + ex.getMessage());
+				Log.e(TAG, "Unknown error ocurred trying to get fields: " + ex.getMessage());
 				ex.printStackTrace();
 			}
 		}
@@ -197,9 +297,14 @@ public class ContactManager {
 				.withYieldAllowed(true);
 	}
 
+	private static ContentProviderOperation.Builder getDataUpdateBuilder(long rawId) {
+		return ContentProviderOperation.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
+				.withYieldAllowed(false);
+	}
+
 	private static ContentProviderOperation.Builder getDataInsertBuilder() {
 		return ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-				.withYieldAllowed(true);
+				.withYieldAllowed(false);
 	}
 
 	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
