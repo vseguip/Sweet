@@ -63,8 +63,8 @@ public class ContactManager {
 		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA, Phone.NUMBER };
 		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE };
 		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK };
-		private static String[] EXTRA_KEYS = { StructuredName.FAMILY_NAME, Organization.TITLE, null, null };
-		private static String[] EXTRA_FIELDS = { ISweetContact.LAST_NAME_KEY, ISweetContact.TITLE_KEY, null, null };
+		private static String[][] EXTRA_KEYS = { { StructuredName.FAMILY_NAME }, { Organization.TITLE }, null, null};
+		private static String[][] EXTRA_FIELDS = { { ISweetContact.LAST_NAME_KEY }, { ISweetContact.TITLE_KEY }, null, null};
 	}
 
 	/**
@@ -214,8 +214,8 @@ public class ContactManager {
 				String data = contact.get(field);
 				String type_key = ContactFields.TYPE_KEYS[i];
 				Integer type = ContactFields.TYPES[i];
-				String extra_key = ContactFields.EXTRA_KEYS[i];
-				String extra_field = ContactFields.EXTRA_FIELDS[i];
+				String[] extra_keys = ContactFields.EXTRA_KEYS[i];
+				String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
 				values.clear();
 				ContentProviderOperation.Builder builder = getDataInsertBuilder();
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
@@ -227,8 +227,10 @@ public class ContactManager {
 					values.put(data_key, data);
 					if (type_key != null)
 						values.put(type_key, type);
-					if (extra_key != null)
-						values.put(extra_key, contact.get(extra_field));
+					if (extra_keys != null) {
+						for (int j = 0; j < extra_keys.length; j++)
+							values.put(extra_keys[j], contact.get(extra_fields[j]));
+					}
 					builder.withValues(values);
 					builder.withValueBackReference(Data.RAW_CONTACT_ID, reference);
 					ops.add(builder.build());
@@ -265,8 +267,8 @@ public class ContactManager {
 				String data = contact.get(field);
 				String type_key = ContactFields.TYPE_KEYS[i];
 				Integer type = ContactFields.TYPES[i];
-				String extra_key = ContactFields.EXTRA_KEYS[i];
-				String extra_field = ContactFields.EXTRA_FIELDS[i];
+				String[] extra_keys = ContactFields.EXTRA_KEYS[i];
+				String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
 				values.clear();
 				ContentProviderOperation.Builder builder = getDataUpdateBuilder(rawId);
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
@@ -274,8 +276,10 @@ public class ContactManager {
 					values.put(data_key, data);
 					if (type_key != null)
 						values.put(type_key, type);
-					if (extra_key != null)
-						values.put(extra_key, contact.get(extra_field));
+					if (extra_keys != null) {
+						for (int j = 0; j < extra_keys.length; j++)
+							values.put(extra_keys[j], contact.get(extra_fields[j]));
+					}
 					builder.withValues(values);
 					builder.withSelection(Data.RAW_CONTACT_ID + "=?" + " AND " + Data.SYNC1 + "=?", new String[] {
 							Long.toString(rawId), field });
