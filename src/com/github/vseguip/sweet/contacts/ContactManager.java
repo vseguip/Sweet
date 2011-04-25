@@ -313,11 +313,6 @@ public class ContactManager {
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId);
 					if (values.size() > 0) {
 						builder.withValues(values);
-						// builder.withSelection(Data._ID + "=?", new String[] {
-						// Long.toString(dataId) });
-						// builder.withSelection(Data._ID + "=?" + " AND " +
-						// Data.SYNC1 + "=?", new String[] {
-						// Long.toString(rawId), field });
 						ops.add(builder.build());
 					}
 				} else {
