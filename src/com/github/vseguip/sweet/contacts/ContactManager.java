@@ -56,7 +56,7 @@ public class ContactManager {
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
-				ISweetContact.EMAIL1_KEY, ISweetContact.PHONE_WORK_KEY };
+				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY };
 
 		private static String[] MIMETYPE_KEYS = { StructuredName.MIMETYPE, Organization.MIMETYPE, Email.MIMETYPE,
 				Phone.MIMETYPE };

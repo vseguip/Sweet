@@ -39,7 +39,7 @@ public class SweetContact implements ISweetContact {
 		mValues.put(ACCOUNT_NAME_KEY, accountName);
 		mValues.put(ACCOUNT_ID_KEY, accountId);
 		mValues.put(EMAIL1_KEY, email1);
-		mValues.put(PHONE_WORK_KEY, phoneWork);
+		mValues.put(WORK_PHONE_KEY, phoneWork);
 		setDateModified(date);
 	}
 	
@@ -88,11 +88,11 @@ public class SweetContact implements ISweetContact {
 	public void setEmail1(String email1) {
 		mValues.put(EMAIL1_KEY, email1);
 	}
-	public String getPhoneWork() {
-		return mValues.get(PHONE_WORK_KEY);
+	public String getWorkPhone() {
+		return mValues.get(WORK_PHONE_KEY);
 	}
-	public void setPhoneWork(String phoneWork) {
-		mValues.put(PHONE_WORK_KEY, phoneWork);
+	public void setWorkPhone(String phoneWork) {
+		mValues.put(WORK_PHONE_KEY, phoneWork);
 	}
 
 	public String getDateModified() {
