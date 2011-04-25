@@ -21,7 +21,6 @@ package com.github.vseguip.sweet.rest;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.http.auth.AuthenticationException;

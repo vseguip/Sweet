@@ -20,7 +20,6 @@ If not, see http://www.gnu.org/licenses/.
 package com.github.vseguip.sweet;
 
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 
