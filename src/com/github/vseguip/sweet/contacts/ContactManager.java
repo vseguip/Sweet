@@ -104,31 +104,14 @@ public class ContactManager {
 		getAccountType(context);
 		ContentResolver resolver = context.getContentResolver();
 		Log.i(TAG, "Starting to sync locally");
-		int i = 0;
+		// int i = 0;
 		for (ISweetContact c : contacts) {
-
 			long localId = findLocalContact(resolver, c.getId());
 			if (localId == 0) {
 				addContact(resolver, ops, acc.name, c);
 			} else {
 				updateContact(resolver, ops, acc.name, c, localId);
 			}
-			i++;
-			try {
-				if (i % 20 == 0) {
-					Log.e(TAG, "Applying " + ops.size() + " operations in a batch");
-					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
-					ops.clear();
-				}
-
-			} catch (RemoteException e) {
-				Log.e(TAG, "Error applying the when syncing");
-				e.printStackTrace();
-			} catch (OperationApplicationException e) {
-				Log.e(TAG, "Error applying the when syncing");
-				e.printStackTrace();
-			}
-
 		}
 		try {
 			// Do the last pending ops
@@ -377,13 +360,12 @@ public class ContactManager {
 		return ContentProviderOperation
 				.newUpdate(
 							addCallerIsSyncAdapterParameter(ContentUris
-									.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId)))
-				.withYieldAllowed(false);
+									.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId))).withYieldAllowed(true);
 	}
 
 	private static ContentProviderOperation.Builder getDataInsertBuilder() {
 		return ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
-				.withYieldAllowed(false);
+				.withYieldAllowed(true);
 	}
 
 	private static Uri addCallerIsSyncAdapterParameter(Uri uri) {
