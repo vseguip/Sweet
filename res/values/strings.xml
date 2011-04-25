@@ -22,4 +22,7 @@
 	<string name="sync_calendar_title">Sync calendar</string>
 	<string name="sync_contacts_summary">Check this is you want to sync contacts with SugarCRM</string>
 	<string name="sync_contacts_title">Sync contacts</string>
+	<string name="full_sync_summary">Check this option to perform a full sync every time the account tries to sync with the SugarCRM server</string>
+	<string name="full_sync_title">Perform full sync</string>
+	<string name="full_sync">fullSync</string>
 </resources>

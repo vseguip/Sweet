@@ -33,16 +33,20 @@ import android.os.Handler;
 
 public interface SugarAPI {
 	public abstract void setServer(String server) throws URISyntaxException;
+
 	/**
-	 *  Get contacts created, modified or deleted since a date.
-	 *  
+	 * Get contacts created, modified or deleted since a date.
+	 * 
 	 * @param token
-	 *            The SessionID token gotten by getToken 
+	 *            The SessionID token gotten by getToken
 	 * @param date
-	 *         	  The date we want to use as a comparison.    
+	 *            The date we want to use as a comparison. If null we will fetch
+	 *            all contacts, if not we will fetch contacts with modified_date
+	 *            greater than or equal to (>=) date.
 	 * 
 	 */
-	public List<ISweetContact> getNewerContacts(String token, Date date) throws AuthenticationException, IOException;
+	public List<ISweetContact> getNewerContacts(String token, String date) throws AuthenticationException, IOException;
+
 	public abstract String getToken(String username, String passwd, Context context, Handler handler);
 
 }

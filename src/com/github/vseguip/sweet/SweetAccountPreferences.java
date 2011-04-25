@@ -27,8 +27,6 @@ import android.util.Log;
 public class SweetAccountPreferences extends PreferenceActivity {
 
 	public static final String TAG = "SweetAccountPreferences";
-	private boolean shouldForceSync = false;
-
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
@@ -39,15 +37,17 @@ public class SweetAccountPreferences extends PreferenceActivity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (shouldForceSync) {
-			// AccountAuthenticatorService.resyncAccount(this);
-		}
+		
 	}
 
-	Preference.OnPreferenceChangeListener syncToggle = new Preference.OnPreferenceChangeListener() {
-		public boolean onPreferenceChange(Preference preference, Object newValue) {
-			shouldForceSync = true;
-			return true;
-		}
-	};
+//	public void resetSyncData() {
+//		super.onPause();		
+//	}
+//	
+//	Preference.OnPreferenceChangeListener syncToggle = new Preference.OnPreferenceChangeListener() {
+//		public boolean onPreferenceChange(Preference preference, Object newValue) {
+//		
+//			return true;
+//		}
+//	};
 }

@@ -19,6 +19,8 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.contacts;
 
+import java.util.Date;
+
 public interface ISweetContact {
 	public static final String PHONE_WORK_KEY = "phoneWork";
 	public static final String EMAIL1_KEY = "email1";
@@ -28,6 +30,7 @@ public interface ISweetContact {
 	public static final String LAST_NAME_KEY = "lastName";
 	public static final String FIRST_NAME_KEY = "firstName";
 	public static final String ID_KEY = "id";
+	public static final String DATE_MODIFIED_KEY = "dateModified";
 	public String getId();
 	public void setId(String id);
 
@@ -52,6 +55,9 @@ public interface ISweetContact {
 	public String getTitle();
 	public void setTitle(String title);
 
+	public String getDateModified();
+	public void setDateModified(String date);
+	
 	public String get(String field);
 	public void set(String field, String value);
 }

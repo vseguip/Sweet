@@ -170,17 +170,20 @@ public class SugarRestAPI implements SugarAPI {
 
 	@Override
 	/** {@inheritDoc} */
-	public List<ISweetContact> getNewerContacts(String token, Date date) throws IOException, AuthenticationException {
+	public List<ISweetContact> getNewerContacts(String token, String date) throws IOException, AuthenticationException {
 		final HttpResponse resp;
 		Log.i(TAG, "getNewerContacts()");
 
 		JSONArray jso_array = new JSONArray();
 		JSONArray jso_fields = new JSONArray();
-		jso_fields.put("id").put("first_name").put("last_name").put("title").put("account_name").put("account_id")
-				.put("email1").put("phone_work");
-		//TODO: Prepare new date data!
-		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(SUGAR_CONTACTS_QUERY).put(SUGAR_CONTACTS_ORDER_BY).put(
-				0).put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
+		jso_fields.put("id").put("first_name").put("last_name").put("title").put("account_name").put("account_id").put(
+				"email1").put("phone_work").put("date_modified");
+		// TODO: Prepare new date data!
+		String sugar_query = SUGAR_CONTACTS_QUERY;
+		if(date!=null)
+			sugar_query = "(contacts.date_modified >= '"+date+"')";		
+		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(SUGAR_CONTACTS_ORDER_BY).put(0)
+				.put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
 
 		final HttpPost post = prepareJSONRequest(jso_array.toString(), GET_METHOD);
 		HttpClient httpClient = getConnection();
@@ -216,7 +219,8 @@ public class SugarRestAPI implements SugarAPI {
 								.getString("value"), entrada.getJSONObject("title").getString("value"), entrada
 								.getJSONObject("account_name").getString("value"), entrada.getJSONObject("account_id")
 								.getString("value"), entrada.getJSONObject("email1").getString("value"), entrada
-								.getJSONObject("phone_work").getString("value")));
+								.getJSONObject("phone_work").getString("value"), entrada.getJSONObject("date_modified")
+								.getString("value")));
 					} catch (Exception ex) {
 						ex.printStackTrace();
 						Log.e(TAG, "Unknown error parsing, skipping entry");
@@ -244,19 +248,22 @@ public class SugarRestAPI implements SugarAPI {
 
 		}
 		return null;
-	}	
-	
+	}
+
 	/**
 	 * Prepares a JSON request encoding the method and the associated JSON data
 	 * for a Sugar REST API call and returns an HTTP Post object
 	 * 
 	 * 
-	 * @param rest_data The string representation of the JSON encoded request and parameters.
-	 * @param method The Sugar REST API method to call.
+	 * @param rest_data
+	 *            The string representation of the JSON encoded request and
+	 *            parameters.
+	 * @param method
+	 *            The Sugar REST API method to call.
 	 * @return The HttpPost representing the Sugar REST Api Call
 	 * @throws AssertionError
 	 */
-	private HttpPost  prepareJSONRequest(String rest_data, String method) throws AssertionError {
+	private HttpPost prepareJSONRequest(String rest_data, String method) throws AssertionError {
 		HttpEntity entity = null;
 		try {
 			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -349,6 +356,5 @@ public class SugarRestAPI implements SugarAPI {
 	public void setServer(String server) throws URISyntaxException {
 		mServer = new URI(server);
 	}
-
 
 }
