@@ -143,6 +143,7 @@ public class ContactManager {
 		Cursor c = resolver.query(RawContacts.CONTENT_URI, RAW_CONTACT_ID_PROJECTION, SOURCE_ID_QUERY, params, null);
 		// must be 1 and only 1!
 		if (c.getCount() != 1) {
+			c.close();
 			return 0;
 		}
 		if (c.moveToFirst()) {
@@ -150,6 +151,13 @@ public class ContactManager {
 			c.close();
 			return rawId;// Return first column!
 		}
+		try {
+			c.close();
+		} catch (Exception ex) {
+			Log.e(TAG, "Unexpected error closing cursor");
+			ex.printStackTrace();
+		}
+
 		return 0;
 	}
 
@@ -165,16 +173,19 @@ public class ContactManager {
 	 */
 	public static long findContactField(ContentResolver resolver, long rawId, String field) {
 		String[] params = { Long.toString(rawId), field };
-		Cursor c = resolver.query(ContactsContract.Data.CONTENT_URI, DATA_ID_PROJECTION, FIELD_ID_QUERY, params, null);
-		// must be 1 and only 1!
-		if (c.getCount() != 1) {
-			return 0;
-		}
+		Cursor c = resolver.query(ContactsContract.Data.CONTENT_URI, DATA_ID_PROJECTION, FIELD_ID_QUERY, params, null);		
 		if (c.moveToFirst()) {
 			long dataId = c.getLong(0);
 			c.close();
 			return dataId;// Return first column!
 		}
+		try {
+			c.close();
+		} catch (Exception ex) {
+			Log.e(TAG, "Unexpected error closing cursor");
+			ex.printStackTrace();
+		}
+
 		return 0;
 	}
 
