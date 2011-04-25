@@ -27,6 +27,7 @@ import com.github.vseguip.sweet.R;
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
@@ -44,10 +45,14 @@ import android.text.TextUtils;
 import android.util.Log;
 
 public class ContactManager {
+	private static final String TAG = "ContactManager";
 	private static String ACCOUNT_TYPE;
 	private static final String[] RAW_CONTACT_ID_PROJECTION = { RawContacts._ID };
-	private static final String TAG = "ContactManager";
 	private static String SOURCE_ID_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.SOURCE_ID + "=?";
+
+	private static final String[] DATA_ID_PROJECTION = { ContactsContract.Data._ID };
+	private static String FIELD_ID_QUERY = ContactsContract.Data.RAW_CONTACT_ID + "=? AND "
+			+ ContactsContract.Data.SYNC1 + "=?";
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
@@ -60,8 +65,9 @@ public class ContactManager {
 		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA, Phone.NUMBER };
 		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE };
 		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK };
-		private static String[][] EXTRA_KEYS = { { StructuredName.FAMILY_NAME }, { Organization.TITLE }, null, null};
-		private static String[][] EXTRA_FIELDS = { { ISweetContact.LAST_NAME_KEY }, { ISweetContact.TITLE_KEY }, null, null};
+		private static String[][] EXTRA_KEYS = { { StructuredName.FAMILY_NAME }, { Organization.TITLE }, null, null };
+		private static String[][] EXTRA_FIELDS = { { ISweetContact.LAST_NAME_KEY }, { ISweetContact.TITLE_KEY }, null,
+				null };
 	}
 
 	/**
@@ -148,6 +154,31 @@ public class ContactManager {
 	}
 
 	/**
+	 * Tries to find a data row in the local database for the specified sugar
+	 * field and raw contact
+	 * 
+	 * @param id
+	 *            The raw id of the contact
+	 * @param field
+	 *            The sugarCRM field we are interested in (stored in SYNC1)
+	 * @return The uid of the local raw contact
+	 */
+	public static long findContactField(ContentResolver resolver, long rawId, String field) {
+		String[] params = { Long.toString(rawId), field };
+		Cursor c = resolver.query(ContactsContract.Data.CONTENT_URI, DATA_ID_PROJECTION, FIELD_ID_QUERY, params, null);
+		// must be 1 and only 1!
+		if (c.getCount() != 1) {
+			return 0;
+		}
+		if (c.moveToFirst()) {
+			long dataId = c.getLong(0);
+			c.close();
+			return dataId;// Return first column!
+		}
+		return 0;
+	}
+
+	/**
 	 * Adds a new contact to the database
 	 * 
 	 * @param resolver
@@ -184,7 +215,7 @@ public class ContactManager {
 	private static void updateContact(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
 			String accountName, ISweetContact contact, long rawId) {
 		ContentValues values = new ContentValues();
-		updateContactData(ops, contact, values, rawId);
+		updateContactData(resolver, ops, contact, values, rawId);
 	}
 
 	/**
@@ -201,7 +232,6 @@ public class ContactManager {
 	 */
 	private static void addContactData(ArrayList<ContentProviderOperation> ops, ISweetContact contact,
 			ContentValues values, int reference) {
-
 		for (int i = 0; i < ContactFields.FIELDS.length; i++) {
 			try {
 				String field = ContactFields.FIELDS[i];
@@ -252,9 +282,10 @@ public class ContactManager {
 	 * @param reference
 	 *            The back reference for the raw contact op
 	 */
-	private static void updateContactData(ArrayList<ContentProviderOperation> ops, ISweetContact contact,
-			ContentValues values, long rawId) {
-
+	private static void updateContactData(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
+			ISweetContact contact, ContentValues values, long rawId) {
+		// TODO: Fix the case where new data has been added (for instance email
+		// before was not set and now it is)
 		for (int i = 0; i < ContactFields.FIELDS.length; i++) {
 			try {
 				String field = ContactFields.FIELDS[i];
@@ -267,7 +298,6 @@ public class ContactManager {
 				String[] extra_keys = ContactFields.EXTRA_KEYS[i];
 				String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
 				values.clear();
-				ContentProviderOperation.Builder builder = getDataUpdateBuilder(rawId);
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 					values.put(mimetype_key, mimetype);
 					values.put(data_key, data);
@@ -277,10 +307,30 @@ public class ContactManager {
 						for (int j = 0; j < extra_keys.length; j++)
 							values.put(extra_keys[j], contact.get(extra_fields[j]));
 					}
-					builder.withValues(values);
-					builder.withSelection(Data.RAW_CONTACT_ID + "=?" + " AND " + Data.SYNC1 + "=?", new String[] {
-							Long.toString(rawId), field });
-					ops.add(builder.build());
+				}
+				long dataId = findContactField(resolver, rawId, field);
+				if (dataId != 0) { // if the row exists, update it
+					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId);
+					if (values.size() > 0) {
+						builder.withValues(values);
+						// builder.withSelection(Data._ID + "=?", new String[] {
+						// Long.toString(dataId) });
+						// builder.withSelection(Data._ID + "=?" + " AND " +
+						// Data.SYNC1 + "=?", new String[] {
+						// Long.toString(rawId), field });
+						ops.add(builder.build());
+					}
+				} else {
+					// field didn't exists previously, insert it
+					ContentProviderOperation.Builder builder = getDataInsertBuilder();
+					if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
+						if (values.size() > 0) {
+							values.put(Data.RAW_CONTACT_ID, rawId);
+							builder.withValues(values);
+							ops.add(builder.build());
+						}
+
+					}
 				}
 
 			} catch (ArrayIndexOutOfBoundsException ex) {
@@ -298,8 +348,8 @@ public class ContactManager {
 				.withYieldAllowed(true);
 	}
 
-	private static ContentProviderOperation.Builder getDataUpdateBuilder(long rawId) {
-		return ContentProviderOperation.newUpdate(addCallerIsSyncAdapterParameter(ContactsContract.Data.CONTENT_URI))
+	private static ContentProviderOperation.Builder getDataUpdateBuilder(long dataId) {
+		return ContentProviderOperation.newUpdate(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId)))
 				.withYieldAllowed(false);
 	}
 

@@ -62,6 +62,22 @@ import android.util.Log;
  * */
 public class SugarRestAPI implements SugarAPI {
 
+	private static final String SUGARCRM_ACCOUNT_ID_FIELD = "account_id";
+
+	private static final String SUGARCRM_DATE_MODIFIED_FIELD = "date_modified";
+
+	private static final String SUGARCRM_PHONE_WORK_FIELD = "phone_work";
+
+	private static final String SUGARCRM_EMAIL1_FIELD = "email1";
+
+	private static final String SUGARCRM_ACCOUNT_NAME_FIELD = "account_name";
+
+	private static final String SUGARCRM_TITLE_FIELD = "title";
+
+	private static final String SUGARCRM_LAST_NAME_FIELD = "last_name";
+
+	private static final String SUGARCRM_FIRST_NAME_FIELD = "first_name";
+
 	private static final int TIMEOUT_OPS = 30 * 1000; // ms
 
 	private static final String KEY_PARAM_RESPONSE_TYPE = "response_type";
@@ -175,9 +191,10 @@ public class SugarRestAPI implements SugarAPI {
 
 		JSONArray jso_array = new JSONArray();
 		JSONArray jso_fields = new JSONArray();
-		jso_fields.put("id").put("first_name").put("last_name").put("title").put("account_name").put("account_id").put(
-				"email1").put("phone_work").put("date_modified");
-		// TODO: Prepare new date data!
+		//TODO: add newer fields (adress and other phones)
+		jso_fields.put("id").put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD).put(SUGARCRM_TITLE_FIELD)
+				.put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD)
+				.put(SUGARCRM_EMAIL1_FIELD).put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_DATE_MODIFIED_FIELD);
 		String sugar_query = SUGAR_CONTACTS_QUERY;
 		if(date!=null)
 			sugar_query = "(contacts.date_modified >= '"+date+"')";		
@@ -212,14 +229,17 @@ public class SugarRestAPI implements SugarAPI {
 				Log.i(TAG, "Creating contact objects");
 				for (int i = 0; i < result.length(); i++) {
 					try {
+						//ID, first name and last name are compulsory, the rest can be skipped 
 						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
-						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), entrada
-								.getJSONObject("first_name").getString("value"), entrada.getJSONObject("last_name")
-								.getString("value"), entrada.getJSONObject("title").getString("value"), entrada
-								.getJSONObject("account_name").getString("value"), entrada.getJSONObject("account_id")
-								.getString("value"), entrada.getJSONObject("email1").getString("value"), entrada
-								.getJSONObject("phone_work").getString("value"), entrada.getJSONObject("date_modified")
-								.getString("value")));
+						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), 
+								entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD).getString("value"), 
+								entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
+								getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_ACCOUNT_NAME_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_ACCOUNT_ID_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_EMAIL1_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_PHONE_WORK_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_DATE_MODIFIED_FIELD, "")));
 					} catch (Exception ex) {
 						ex.printStackTrace();
 						Log.e(TAG, "Unknown error parsing, skipping entry");
@@ -249,6 +269,15 @@ public class SugarRestAPI implements SugarAPI {
 		return null;
 	}
 
+	private String getSugarValue(JSONObject json, String key, String d) {
+		String val = d;
+		try {
+			val = json.getJSONObject(key).getString("value");
+		} catch (JSONException ex){
+			Log.i(TAG, "Field " + key + " not set in SugarCRM, ignoring.");
+		}
+		return val;
+	}
 	/**
 	 * Prepares a JSON request encoding the method and the associated JSON data
 	 * for a Sugar REST API call and returns an HTTP Post object
