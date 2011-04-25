@@ -57,7 +57,7 @@ public class ContactManager {
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
-				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY, 
+				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY,
 				ISweetContact.WORK_FAX_KEY, ISweetContact.CITY_KEY };
 
 		private static String[] MIMETYPE_KEYS = { StructuredName.MIMETYPE, Organization.MIMETYPE, Email.MIMETYPE,
@@ -67,9 +67,10 @@ public class ContactManager {
 				StructuredPostal.CONTENT_ITEM_TYPE };
 		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA,
 				Phone.NUMBER, Phone.NUMBER, Phone.NUMBER, StructuredPostal.CITY };
-		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE, Phone.TYPE, StructuredPostal.TYPE };
-		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK, Phone.TYPE_MOBILE, Phone.TYPE_FAX_WORK,
-				StructuredPostal.TYPE_WORK };
+		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE, Phone.TYPE, Phone.TYPE,
+				StructuredPostal.TYPE };
+		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK, Phone.TYPE_MOBILE,
+				Phone.TYPE_FAX_WORK, StructuredPostal.TYPE_WORK };
 		private static String[][] EXTRA_KEYS = {
 				{ StructuredName.FAMILY_NAME },
 				{ Organization.TITLE },
@@ -175,7 +176,7 @@ public class ContactManager {
 	 */
 	public static long findContactField(ContentResolver resolver, long rawId, String field) {
 		String[] params = { Long.toString(rawId), field };
-		Cursor c = resolver.query(ContactsContract.Data.CONTENT_URI, DATA_ID_PROJECTION, FIELD_ID_QUERY, params, null);		
+		Cursor c = resolver.query(ContactsContract.Data.CONTENT_URI, DATA_ID_PROJECTION, FIELD_ID_QUERY, params, null);
 		if (c.moveToFirst()) {
 			long dataId = c.getLong(0);
 			c.close();
