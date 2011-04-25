@@ -45,13 +45,14 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class SweetContactSync extends AbstractThreadedSyncAdapter {
-	
+
 	Context mContext;
 	private String AUTH_TOKEN_TYPE;
 	private AccountManager mAccountManager;
 	private String mAuthToken;
 	private final String TAG = "SweetContactSync";
 	private static final String LAST_SYNC_KEY = "lastSync";
+
 	public SweetContactSync(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
 		Log.i(TAG, "SweetContactSync");
@@ -68,10 +69,12 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 	class SugarRunnable implements Runnable {
 		ISugarRunnable r;
 		Account mAccount;
+		SyncResult mSyncResult;
 
-		public SugarRunnable(Account acc, ISugarRunnable _r) {
+		public SugarRunnable(Account acc, SyncResult syncResult, ISugarRunnable _r) {
 			r = _r;
 			mAccount = acc;
+			mSyncResult = syncResult;
 		}
 
 		@Override
@@ -91,11 +94,13 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (AuthenticationException aex) {
-				if (SweetContactSync.this.mAuthToken != null) {
+//				if (SweetContactSync.this.mAuthToken != null) {
 					mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);
-				} else {
-					mAccountManager.confirmCredentials(mAccount, null, null, null, null);
-				}
+//				} else {
+//					
+//					mAccountManager.confirmCredentials(mAccount, null, null, null, null);
+//				}
+				mSyncResult.stats.numAuthExceptions++;
 			}
 
 		}
@@ -106,12 +111,12 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider,
 			SyncResult syncResult) {
 		Log.i(TAG, "onPerformSync()");
-		//Get preferences
+		// Get preferences
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
 		boolean fullSync = settings.getBoolean(mContext.getString(R.string.full_sync), false);
-		if(fullSync)
+		if (fullSync)
 			mAccountManager.setUserData(account, LAST_SYNC_KEY, null);
-		performNetOperation(new SugarRunnable(account, new ISugarRunnable() {
+		performNetOperation(new SugarRunnable(account, syncResult, new ISugarRunnable() {
 			@Override
 			public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException,
 					IOException, AuthenticationException {
@@ -121,7 +126,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
 				// SugarCRM return date_modified field as a String (in GMT)
-				// which can be lexicographically compared to determine 
+				// which can be lexicographically compared to determine
 				// which date is the latest. The sync strategy is as follows
 				// 1) If the account "lastSync" user data is null perform a full
 				// sync
@@ -129,9 +134,9 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				// to get only newer contacts.Everytime we get new contacts we
 				// search for the latest modified time and we get all contacts
 				// with modification time greater than or equal to the last sync
-				// time. This is done since we can have a newer contact 
-				// inserted in SugarCRM with the same date since SugarCRM only 
-				// keeps second accuracy. This means we will probably get the 
+				// time. This is done since we can have a newer contact
+				// inserted in SugarCRM with the same date since SugarCRM only
+				// keeps second accuracy. This means we will probably get the
 				// latest entry also but that's not really a problem.
 				// 3) Store last modified date into the account user data for
 				// future use.
@@ -143,7 +148,8 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				// taken
 				// b) We never don't need to parse the time in the client so
 				// again no problems when it comes to different time zones, etc
-				// c) The user can force a full sync using the account preferences 
+				// c) The user can force a full sync using the account
+				// preferences
 				// to set the lastSync user data to null.
 				String lastDate = mAccountManager.getUserData(account, LAST_SYNC_KEY);
 				List<ISweetContact> contacts = sugar.getNewerContacts(mAuthToken, lastDate);
@@ -161,7 +167,6 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 	}
 
 	void performNetOperation(Runnable r) {
-		// TODO: Run in background?
 		r.run();
 	}
 }
