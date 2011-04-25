@@ -68,6 +68,8 @@ public class SugarRestAPI implements SugarAPI {
 
 	private static final String SUGARCRM_PHONE_WORK_FIELD = "phone_work";
 
+	private static final String SUGARCRM_PHONE_MOBILE_FIELD = "phone_mobile";
+
 	private static final String SUGARCRM_EMAIL1_FIELD = "email1";
 
 	private static final String SUGARCRM_ACCOUNT_NAME_FIELD = "account_name";
@@ -77,6 +79,12 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGARCRM_LAST_NAME_FIELD = "last_name";
 
 	private static final String SUGARCRM_FIRST_NAME_FIELD = "first_name";
+
+	private static final String SUGARCRM_STREET_FIELD = "primary_address_street";
+	private static final String SUGARCRM_CITY_FIELD = "primary_address_city";
+	private static final String SUGARCRM_STATE_FIELD = "primary_address_state";
+	private static final String SUGARCRM_POSTAL_CODE_FIELD = "primary_address_postalcode";
+	private static final String SUGARCRM_COUNTRY_FIELD = "primary_address_country";
 
 	private static final int TIMEOUT_OPS = 30 * 1000; // ms
 
@@ -172,8 +180,11 @@ public class SugarRestAPI implements SugarAPI {
 			return null;
 		} catch (Exception e) {
 			e.printStackTrace();
-			sendResult(false, handler, context,
-					"Error trying to validate your credentials. Check you server name and net connectivity.");
+			sendResult(
+						false,
+						handler,
+						context,
+						"Error trying to validate your credentials. Check you server name and net connectivity.");
 			return null;
 		} finally {
 			if (Log.isLoggable(TAG, Log.VERBOSE)) {
@@ -191,13 +202,15 @@ public class SugarRestAPI implements SugarAPI {
 
 		JSONArray jso_array = new JSONArray();
 		JSONArray jso_fields = new JSONArray();
-		//TODO: add newer fields (adress and other phones)
+		// TODO: add newer fields (adress and other phones)
 		jso_fields.put("id").put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD).put(SUGARCRM_TITLE_FIELD)
-				.put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD)
-				.put(SUGARCRM_EMAIL1_FIELD).put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_DATE_MODIFIED_FIELD);
+				.put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD).put(SUGARCRM_EMAIL1_FIELD)
+				.put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD).put(SUGARCRM_STREET_FIELD)
+				.put(SUGARCRM_CITY_FIELD).put(SUGARCRM_STATE_FIELD).put(SUGARCRM_POSTAL_CODE_FIELD)
+				.put(SUGARCRM_COUNTRY_FIELD).put(SUGARCRM_DATE_MODIFIED_FIELD);
 		String sugar_query = SUGAR_CONTACTS_QUERY;
-		if(date!=null)
-			sugar_query = "(contacts.date_modified >= '"+date+"')";		
+		if (date != null)
+			sugar_query = "(contacts.date_modified >= '" + date + "')";
 		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(SUGAR_CONTACTS_ORDER_BY).put(0)
 				.put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
 
@@ -229,16 +242,23 @@ public class SugarRestAPI implements SugarAPI {
 				Log.i(TAG, "Creating contact objects");
 				for (int i = 0; i < result.length(); i++) {
 					try {
-						//ID, first name and last name are compulsory, the rest can be skipped 
+						// ID, first name and last name are compulsory, the rest
+						// can be skipped
 						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
-						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), 
-								entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD).getString("value"), 
-								entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
+						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), entrada
+								.getJSONObject(SUGARCRM_FIRST_NAME_FIELD).getString("value"), entrada
+								.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
 								getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_NAME_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_ID_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_EMAIL1_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_PHONE_WORK_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_PHONE_MOBILE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_STREET_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), 
+								getSugarValue(entrada, SUGARCRM_STATE_FIELD,""),
+								getSugarValue(entrada, SUGARCRM_POSTAL_CODE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_COUNTRY_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_DATE_MODIFIED_FIELD, "")));
 					} catch (Exception ex) {
 						ex.printStackTrace();
@@ -273,11 +293,12 @@ public class SugarRestAPI implements SugarAPI {
 		String val = d;
 		try {
 			val = json.getJSONObject(key).getString("value");
-		} catch (JSONException ex){
+		} catch (JSONException ex) {
 			Log.i(TAG, "Field " + key + " not set in SugarCRM, ignoring.");
 		}
 		return val;
 	}
+
 	/**
 	 * Prepares a JSON request encoding the method and the associated JSON data
 	 * for a Sugar REST API call and returns an HTTP Post object

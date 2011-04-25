@@ -19,7 +19,10 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.contacts;
 
+
+
 public interface ISweetContact {
+	public static final String MOBILE_PHONE_KEY = "mobilePhone";
 	public static final String WORK_PHONE_KEY = "workPhone";	
 	public static final String EMAIL1_KEY = "email1";
 	public static final String ACCOUNT_ID_KEY = "accountId";
@@ -27,8 +30,16 @@ public interface ISweetContact {
 	public static final String TITLE_KEY = "title";
 	public static final String LAST_NAME_KEY = "lastName";
 	public static final String FIRST_NAME_KEY = "firstName";
+	
 	public static final String ID_KEY = "id";
+	public static final String STREET_KEY = "street";
+	public static final String CITY_KEY = "city";
+	public static final String STATE_KEY = "state";
+	public static final String COUNTRY_KEY = "country";
+	public static final String POSTAL_CODE_KEY = "postalCode";
+	
 	public static final String DATE_MODIFIED_KEY = "dateModified";
+	
 	public String getId();
 	public void setId(String id);
 
@@ -47,12 +58,15 @@ public interface ISweetContact {
 	public String getWorkPhone();
 	public void setWorkPhone(String phoneWork);
 
+	public String getMobilePhone();
+	public void setMobilePhone(String mobilePhone);
+
 	public String getEmail1();
 	public void setEmail1(String email1);
 	
 	public String getTitle();
 	public void setTitle(String title);
-
+	
 	public String getDateModified();
 	public void setDateModified(String date);
 	

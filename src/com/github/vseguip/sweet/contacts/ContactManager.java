@@ -40,6 +40,7 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Contacts.Data;
 import android.text.TextUtils;
 import android.util.Log;
@@ -56,18 +57,34 @@ public class ContactManager {
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
-				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY };
+				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY,
+				ISweetContact.CITY_KEY };
 
 		private static String[] MIMETYPE_KEYS = { StructuredName.MIMETYPE, Organization.MIMETYPE, Email.MIMETYPE,
-				Phone.MIMETYPE };
+				Phone.MIMETYPE, Phone.MIMETYPE, StructuredPostal.MIMETYPE };
 		private static String[] MIMETYPES = { StructuredName.CONTENT_ITEM_TYPE, Organization.CONTENT_ITEM_TYPE,
-				Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE };
-		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA, Phone.NUMBER };
-		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE };
-		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK };
-		private static String[][] EXTRA_KEYS = { { StructuredName.FAMILY_NAME }, { Organization.TITLE }, null, null };
-		private static String[][] EXTRA_FIELDS = { { ISweetContact.LAST_NAME_KEY }, { ISweetContact.TITLE_KEY }, null,
-				null };
+				Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE,
+				StructuredPostal.CONTENT_ITEM_TYPE };
+		private static String[] DATA_KEYS = { StructuredName.GIVEN_NAME, Organization.COMPANY, Email.DATA,
+				Phone.NUMBER, Phone.NUMBER, StructuredPostal.CITY };
+		private static String[] TYPE_KEYS = { null, null, Email.TYPE, Phone.TYPE, Phone.TYPE, StructuredPostal.TYPE };
+		private static Integer[] TYPES = { null, null, Email.TYPE_WORK, Phone.TYPE_WORK, Phone.TYPE_MOBILE,
+				StructuredPostal.TYPE_WORK };
+		private static String[][] EXTRA_KEYS = {
+				{ StructuredName.FAMILY_NAME },
+				{ Organization.TITLE },
+				null,
+				null,
+				null,
+				{ StructuredPostal.STREET, StructuredPostal.COUNTRY, StructuredPostal.POSTCODE, StructuredPostal.REGION } };
+		private static String[][] EXTRA_FIELDS = {
+				{ ISweetContact.LAST_NAME_KEY },
+				{ ISweetContact.TITLE_KEY },
+				null,
+				null,
+				null,
+				{ ISweetContact.STREET_KEY, ISweetContact.COUNTRY_KEY, ISweetContact.POSTAL_CODE_KEY,
+						ISweetContact.STATE_KEY }, null };
 	}
 
 	/**
@@ -96,7 +113,7 @@ public class ContactManager {
 			}
 			i++;
 			try {
-				if (i % 100 == 0) {
+				if (i % 20 == 0) {
 					Log.e(TAG, "Applying " + ops.size() + " operations in a batch");
 					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
 					ops.clear();
@@ -355,7 +372,10 @@ public class ContactManager {
 	}
 
 	private static ContentProviderOperation.Builder getDataUpdateBuilder(long dataId) {
-		return ContentProviderOperation.newUpdate(addCallerIsSyncAdapterParameter(ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId)))
+		return ContentProviderOperation
+				.newUpdate(
+							addCallerIsSyncAdapterParameter(ContentUris
+									.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId)))
 				.withYieldAllowed(false);
 	}
 
