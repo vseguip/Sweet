@@ -14,16 +14,21 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
-	/** The key to account metadata. Holds the version of the account (how information is mapped, etc)*/ 
+	/**
+	 * The key to account metadata. Holds the version of the account (how
+	 * information is mapped, etc)
+	 */
 	public static final String KEY_SYNC_VERSION = "syncVersion";
-	
+
 	public static final String KEY_PARAM_SERVER = "server";
 	/** The Intent flag to confirm credentials. **/
 	public static final String PARAM_CONFIRM_CREDENTIALS = "confirmCredentials";
@@ -55,11 +60,18 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 	private String mIdSession;
 	private Object mAuthtokenType;
 
+	private TextView mTextAction;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "onCreate(" + savedInstanceState + ")");
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_LEFT_ICON);
+
 		setContentView(R.layout.main);
+
+		getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, android.R.drawable.ic_dialog_alert);
+
 		Log.e(TAG, "Content authority: " + ContactsContract.AUTHORITY);
 		ACCOUNT_TYPE = getString(R.string.account_type);
 		final Intent intent = getIntent();
@@ -81,6 +93,19 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		mButtonBack = (Button) findViewById(R.id.buttonBack);
 		mButtonCancel = (Button) findViewById(R.id.buttonCancel);
 		mButtonCreate = (Button) findViewById(R.id.buttonCreate);
+		mTextAction = (TextView) findViewById(R.id.textViewCreate);
+		if (mCreateAccount) {
+			mTextAction.setText(R.string.activity_create);
+		} else {
+			mTextAction.setText(R.string.activity_check_update);
+		}
+		if (!mConfirmCredentials && !mCreateAccount) {
+			String username = intent.getStringExtra(PARAM_USERNAME);
+			String server = mAccountManager.getUserData(new Account(username, ACCOUNT_TYPE), KEY_PARAM_SERVER);
+			mUserEdit.setText(username);
+			mPasswdEdit.setText(intent.getStringExtra(PARAM_PASSWORD));
+			mServerEdit.setText(server);
+		}
 		mButtonValidate.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -99,8 +124,10 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 					return;
 				}
 				if (server == null || server.length() <= 0) {
-					Toast.makeText(SweetAuthenticatorActivity.this,
-							"Please enter a valid URL to use as a server resource", Toast.LENGTH_LONG);
+					Toast.makeText(
+									SweetAuthenticatorActivity.this,
+									"Please enter a valid URL to use as a server resource",
+									Toast.LENGTH_LONG);
 					return;
 				}
 				try {
@@ -108,8 +135,10 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 					sugar.setServer(server);
 					sugar.getToken(username, passwd, SweetAuthenticatorActivity.this, handler);
 				} catch (URISyntaxException ex) {
-					Toast.makeText(SweetAuthenticatorActivity.this,
-							"Please enter a valid URI to use as a server resource", Toast.LENGTH_LONG);
+					Toast.makeText(
+									SweetAuthenticatorActivity.this,
+									"Please enter a valid URI to use as a server resource",
+									Toast.LENGTH_LONG);
 				}
 			}
 		});
@@ -145,6 +174,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		intent.putExtra(AccountManager.KEY_BOOLEAN_RESULT, true);
 		setAccountAuthenticatorResult(intent.getExtras());
 		setResult(RESULT_OK, intent);
+		Toast.makeText(this, getString(R.string.succesful_authentication), Toast.LENGTH_LONG).show();
+
 		finish();
 
 	}
@@ -158,10 +189,11 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		final Account account = new Account(username, ACCOUNT_TYPE);
 		if (mCreateAccount) {
 			Bundle serverData = new Bundle();
-			//serverData.putString(KEY_PARAM_SERVER, server);
+			// serverData.putString(KEY_PARAM_SERVER, server);
 			mAccountManager.addAccountExplicitly(account, passwd, serverData);
 			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
-			//set the version of the data mapping used for contacts/calendars/etc
+			// set the version of the data mapping used for
+			// contacts/calendars/etc
 			mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
 			// Set contacts sync for this account.
 			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
@@ -190,9 +222,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 			if (mCreateAccount) {
 				mViewF.showNext();
 			} else {
-				if (mConfirmCredentials) {
-					confirmCredentials();
-				}
+				confirmCredentials();
+
 			}
 		} else {
 			Toast.makeText(this, message, Toast.LENGTH_LONG).show();

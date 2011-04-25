@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical" android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
-  	<ViewFlipper android:id="@+id/ViewFlipper01"
+	android:layout_height="fill_parent"
+	android:scrollbars="vertical">
+	<ViewFlipper android:id="@+id/ViewFlipper01"
 		android:layout_width="fill_parent" android:layout_height="fill_parent">
- 		<LinearLayout android:orientation="vertical"
-			android:layout_width="fill_parent" android:layout_height="fill_parent">
+		<LinearLayout android:orientation="vertical"
+			android:layout_width="fill_parent" android:layout_height="fill_parent"
+			>
 			<LinearLayout android:layout_width="fill_parent"
 				android:layout_height="0dip" android:layout_weight="1"
 				android:orientation="vertical">
+				<TextView android:text=""
+					android:id="@+id/textViewCreate" android:layout_width="wrap_content"
+					android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium"
+					android:paddingBottom="5dp"></TextView>
 
 				<TextView android:text="@+string/username" android:id="@+id/TextView01"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 				<EditText android:id="@+id/EditUserName"
-					android:layout_width="fill_parent" android:layout_height="wrap_content"></EditText>
+					android:layout_width="fill_parent" android:layout_height="wrap_content"
+					android:padding="5dp"></EditText>
 				<TextView android:text="@+string/password" android:id="@+id/TextView02"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 				<EditText android:id="@+id/EditPassword"
 					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:password="true"></EditText>
+					android:password="true"
+					android:padding="5dp"></EditText>
 				<TextView android:text="@+string/server" android:id="@+id/TextView03"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 				<EditText android:id="@+id/EditServer"
 					android:layout_width="fill_parent" android:layout_height="wrap_content"
-					android:hint="http://example.com/sugarcrm/service/v2/rest.php"/>
+					android:hint="http://example.com/sugarcrm/service/v2/rest.php" 
+					android:padding="5dp"/>
 
 				<CheckBox android:text="@+string/acceptcerts" android:id="@+id/CheckAcceptCerts"
 					android:textAppearance="?android:attr/textAppearanceLarge"
@@ -87,5 +96,5 @@
 			</LinearLayout>
 
 		</LinearLayout>
-</ViewFlipper>
+	</ViewFlipper>
 </LinearLayout>

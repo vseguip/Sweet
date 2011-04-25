@@ -77,6 +77,8 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 		// Launch AuthenticatorActivity to confirm credentials
 		final Intent intent = new Intent(mContext, SweetAuthenticatorActivity.class);
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_USERNAME, account.name);
+		intent.putExtra(SweetAuthenticatorActivity.KEY_PARAM_SERVER, AccountManager.get(mContext)
+				.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER));
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_CONFIRM_CREDENTIALS, true);
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_CREATE_ACCOUNT, false);
 		intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
@@ -170,7 +172,7 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 
 		final Intent intent = new Intent(mContext, SweetAuthenticatorActivity.class);
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_USERNAME, account.name);
-		intent.putExtra(SweetAuthenticatorActivity.PARAM_AUTHTOKEN_TYPE, authTokenType);
+		intent.putExtra(SweetAuthenticatorActivity.PARAM_AUTHTOKEN_TYPE, authTokenType);	
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_CONFIRM_CREDENTIALS, false);
 		intent.putExtra(SweetAuthenticatorActivity.PARAM_CREATE_ACCOUNT, false);
 		final Bundle bundle = new Bundle();
