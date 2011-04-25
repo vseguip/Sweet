@@ -21,7 +21,9 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
-
+	/** The key to account metadata. Holds the version of the account (how information is mapped, etc)*/ 
+	public static final String KEY_SYNC_VERSION = "syncVersion";
+	
 	public static final String KEY_PARAM_SERVER = "server";
 	/** The Intent flag to confirm credentials. **/
 	public static final String PARAM_CONFIRM_CREDENTIALS = "confirmCredentials";
@@ -159,6 +161,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 			//serverData.putString(KEY_PARAM_SERVER, server);
 			mAccountManager.addAccountExplicitly(account, passwd, serverData);
 			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
+			//set the version of the data mapping used for contacts/calendars/etc
+			mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
 			// Set contacts sync for this account.
 			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
 		} else {
