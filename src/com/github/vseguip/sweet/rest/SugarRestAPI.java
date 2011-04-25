@@ -69,6 +69,8 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGARCRM_PHONE_WORK_FIELD = "phone_work";
 
 	private static final String SUGARCRM_PHONE_MOBILE_FIELD = "phone_mobile";
+	
+	private static final String SUGARCRM_FAX_WORK_FIELD = "phone_fax";
 
 	private static final String SUGARCRM_EMAIL1_FIELD = "email1";
 
@@ -205,7 +207,7 @@ public class SugarRestAPI implements SugarAPI {
 		// TODO: add newer fields (adress and other phones)
 		jso_fields.put("id").put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD).put(SUGARCRM_TITLE_FIELD)
 				.put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD).put(SUGARCRM_EMAIL1_FIELD)
-				.put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD).put(SUGARCRM_STREET_FIELD)
+				.put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD).put(SUGARCRM_FAX_WORK_FIELD).put(SUGARCRM_STREET_FIELD)
 				.put(SUGARCRM_CITY_FIELD).put(SUGARCRM_STATE_FIELD).put(SUGARCRM_POSTAL_CODE_FIELD)
 				.put(SUGARCRM_COUNTRY_FIELD).put(SUGARCRM_DATE_MODIFIED_FIELD);
 		String sugar_query = SUGAR_CONTACTS_QUERY;
@@ -254,6 +256,7 @@ public class SugarRestAPI implements SugarAPI {
 								getSugarValue(entrada, SUGARCRM_EMAIL1_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_PHONE_WORK_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_PHONE_MOBILE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_FAX_WORK_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_STREET_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), 
 								getSugarValue(entrada, SUGARCRM_STATE_FIELD,""),

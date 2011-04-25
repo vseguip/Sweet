@@ -22,8 +22,10 @@ package com.github.vseguip.sweet.contacts;
 
 
 public interface ISweetContact {
+	public static final String ID_KEY = "id";
 	public static final String MOBILE_PHONE_KEY = "mobilePhone";
 	public static final String WORK_PHONE_KEY = "workPhone";	
+	public static final String WORK_FAX_KEY = "workFax";
 	public static final String EMAIL1_KEY = "email1";
 	public static final String ACCOUNT_ID_KEY = "accountId";
 	public static final String ACCOUNT_NAME_KEY = "accountName";
@@ -31,7 +33,6 @@ public interface ISweetContact {
 	public static final String LAST_NAME_KEY = "lastName";
 	public static final String FIRST_NAME_KEY = "firstName";
 	
-	public static final String ID_KEY = "id";
 	public static final String STREET_KEY = "street";
 	public static final String CITY_KEY = "city";
 	public static final String STATE_KEY = "state";
@@ -61,6 +62,9 @@ public interface ISweetContact {
 	public String getMobilePhone();
 	public void setMobilePhone(String mobilePhone);
 
+	public String getWorkFax();
+	public void setWorkFax(String workFax);
+	
 	public String getEmail1();
 	public void setEmail1(String email1);
 	
