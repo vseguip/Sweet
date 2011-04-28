@@ -211,7 +211,15 @@ public class ContactManager {
 		values.put(RawContacts.SOURCE_ID, contact.getId());
 		values.put(RawContacts.ACCOUNT_NAME, accountName);
 		values.put(RawContacts.ACCOUNT_TYPE, getAccountType());
+
 		builder.withValues(values);
+		ops.add(builder.build());
+		builder = getDataInsertBuilder();
+		builder.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, reference);
+		builder.withValue(ContactsContract.Data.MIMETYPE, "vnd.android.cursor.item/vnd.sweet.github.com.profile");
+		builder.withValue(ContactsContract.Data.DATA1, accountName);
+		builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
+		builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
 		ops.add(builder.build());
 		addContactData(ops, contact, values, reference);
 	}
