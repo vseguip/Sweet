@@ -20,9 +20,11 @@ If not, see http://www.gnu.org/licenses/.
 package com.github.vseguip.sweet.contacts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.github.vseguip.sweet.R;
+import com.github.vseguip.sweet.rest.SweetContact;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
@@ -36,12 +38,14 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.RawContactsEntity;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Contacts.Data;
+import android.provider.ContactsContract.RawContacts.Entity;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -358,6 +362,91 @@ public class ContactManager {
 	}
 
 	/**
+	 * Get's a contact from the profile entry we encoded in addContact We first
+	 * need to retrieve it's RawContactId then we use the getContactData call to
+	 * set the data in the contact. Basically we are mirroring the
+	 * addContactData methods
+	 * 
+	 * @param entityUri
+	 *            : The uri to the entry in the Data table that encodes the
+	 *            profile entry.
+	 * @return an ISweetContact or null if some problem happened
+	 */
+	public static ISweetContact getContactFromMime(Context context, Uri entityUri) {
+
+		SweetContact contact = null;
+		ContentResolver res = context.getContentResolver();
+		long rawId = getRawContactIdFromData(res, entityUri);
+		if (rawId != 0) {
+			contact = new SweetContact();
+			getContactData(res, rawId, contact);
+		}
+		return contact;
+	}
+
+	private static void getContactData(ContentResolver res, long rawId, ISweetContact contact) {
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
+		for (int i = 0; i < ContactFields.FIELDS.length; i++) {
+			String field = ContactFields.FIELDS[i];
+			map.put(field, i);
+		}
+		Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, rawId);
+		Uri entityUri = Uri.withAppendedPath(rawContactUri, Entity.CONTENT_DIRECTORY);
+		Cursor c = res.query(entityUri, null, null, null, null);
+		try {
+			if (c.moveToFirst()) {
+				int index = c.getColumnIndex(Data.SYNC1);
+				while (!c.isLast()) {					
+					String field = c.getString(index);
+					if (map.containsKey(field)) {
+						int i = map.get(field);
+						String[] extra_keys = ContactFields.EXTRA_KEYS[i];
+						String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
+						String data_key = ContactFields.DATA_KEYS[i];
+						contact.set(field, c.getString(c.getColumnIndex(data_key)));
+						if (extra_keys != null) {
+							for (int j = 0; j < extra_keys.length; j++) {
+								if (extra_keys[i] != null && extra_fields[i] != null) {
+									contact.set(extra_fields[j], c.getString(c.getColumnIndex(extra_keys[j])));
+								}
+							}
+						}
+					}
+					c.moveToNext();
+				}
+			}
+
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			Log.e(TAG, "Unknown error ocurred trying to get fields: " + ex.getMessage());
+			ex.printStackTrace();
+		} finally {
+			c.close();
+		}
+	}
+
+	/**
+	 * Get's the RawContact Id from a Data table
+	 * 
+	 * @param res
+	 *            The content resolver
+	 * @param entityUri
+	 *            The uri of the Data entry
+	 * @return The Id of the rawContact
+	 */
+	private static long getRawContactIdFromData(ContentResolver res, Uri entityUri) {
+		long rawId = 0;
+		Cursor c = res.query(entityUri, new String[] { RawContacts.Data.RAW_CONTACT_ID }, null, null, null);
+		try {
+			while (c.moveToNext()) {
+				rawId = c.getLong(0);
+			}
+		} finally {
+			c.close();
+		}
+		return rawId;
+	}
+
+	/**
 	 * 
 	 */
 	private static ContentProviderOperation.Builder getRawContactInsertBuilder() {
@@ -390,4 +479,5 @@ public class ContactManager {
 			ACCOUNT_TYPE = context.getString(R.string.account_type);
 		return ACCOUNT_TYPE;
 	}
+
 }
