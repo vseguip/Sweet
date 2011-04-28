@@ -2,6 +2,7 @@
 <resources>
 
 	<string name="app_name">Sweet</string>
+	<string name="save">Save</string>
 	<string name="username">Username</string>
 	<string name="password">Password</string>
 	<string name="server">Server</string>
@@ -11,6 +12,27 @@
 	<string name="validate">Validate</string>
 	<string name="back">Back</string>
 	<string name="createAccount">Create Account</string>
+	<!-- For the contact editor activity -->
+	<string name="contact">Contact</string>
+	<string name="first_name">First name</string>
+	<string name="last_name">Last name</string>
+	<string name="organization">Organization</string>
+	<string name="title">Title</string>
+	<string name="sample">Abdul Musico</string>
+	
+	<string name="phone">Phone</string>
+	<string name="work">Work</string>
+	<string name="mobile">Mobile</string>
+	<string name="fax">Fax</string>
+	<string name="email">Email</string>
+	
+	<string name="address">Address</string>	
+	<string name="street">Street</string>
+	<string name="city">City</string>
+	<string name="postal_code">Postal code</string>
+	<string name="region">Region</string>
+	<string name="country">Country</string>
+		<!-- End contact editor activity -->
 	<string name="validationOk">Your account settings have been validated
 		successfully. Press the create button to create your account.</string>
 	<string name="account_type">com.github.vseguip.sweet.account</string>
@@ -29,4 +51,8 @@
 	<string name="succesful_authentication">Account succesfully authenticated. Try to sync again if there were any problems in your last attempt</string>
 	<string name="activity_create">Enter your new account settings</string>
 	<string name="activity_check_update">Please check and update your account data settings</string>
+	<string name="sync_conflict">Conflict resolution</string>
+	<string name="server_resolve">server_resolve</string>
+	<string name="server_resolve_title">Prefer server</string>
+	<string name="server_resolve_summary">Use server data when there is a conflict between locally modified contacts and server modified contacts</string>
 </resources>
