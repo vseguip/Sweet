@@ -316,17 +316,16 @@ public class SugarRestAPI implements SugarAPI {
 	 * @throws AssertionError
 	 */
 	private HttpPost prepareJSONRequest(String rest_data, String method) throws AssertionError {
-		HttpEntity entity = null;
+		AbstractHttpEntity entity = null;
 		try {
 			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
 			params.add(new BasicNameValuePair(KEY_PARAM_METHOD, method));
 			params.add(new BasicNameValuePair(KEY_PARAM_INPUT_TYPE, JSON));
 			params.add(new BasicNameValuePair(KEY_PARAM_RESPONSE_TYPE, JSON));
-
 			params.add(new BasicNameValuePair("rest_data", rest_data));
-			entity = new UrlEncodedFormEntity(params);
+			entity = new UrlEncodedFormEntity(params, HTTP.UTF_8);			
 			final HttpPost post = new HttpPost(mServer);
-			post.addHeader(entity.getContentType());
+			post.addHeader(entity.getContentType());			
 			post.setEntity(entity);
 			return post;
 
