@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="@string/sync_preferences">
-		<CheckBoxPreference  android:key="@string/full_sync" android:title="@string/full_sync_title"
-			android:summary="@string/full_sync_summary"/>		
+		<CheckBoxPreference android:key="@string/full_sync"
+			android:title="@string/full_sync_title" android:summary="@string/full_sync_summary" />
+	</PreferenceCategory>
+	<PreferenceCategory android:title="@string/sync_conflict">
+		<CheckBoxPreference android:key="@string/server_resolve"
+			android:title="@string/server_resolve_title" android:summary="@string/server_resolve_summary" />
 	</PreferenceCategory>
 </PreferenceScreen>

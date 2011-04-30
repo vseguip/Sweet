@@ -74,6 +74,21 @@ public interface ISweetContact {
 	public String getDateModified();
 	public void setDateModified(String date);
 	
+	public String getStreet();
+	public void setStreet(String street);
+	
+	public String getCity();
+	public void setCity(String city);
+	
+	public String getPostalCode();
+	public void setPostalCode(String postalCode);
+	
+	public String getRegion();
+	public void setRegion(String region);
+		
+	public String getCountry();
+	public void setCountry(String country);
+		
 	public String get(String field);
 	public void set(String field, String value);
 }

@@ -38,7 +38,6 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.RawContacts;
-import android.provider.ContactsContract.RawContactsEntity;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
@@ -115,7 +114,7 @@ public class ContactManager {
 			if (localId == 0) {
 				addContact(resolver, ops, acc.name, c);
 			} else {
-				updateContact(resolver, ops, acc.name, c, localId);
+				updateContact(resolver, ops, c, localId, true);
 			}
 		}
 		try {
@@ -196,6 +195,33 @@ public class ContactManager {
 		return 0;
 	}
 
+	public static void saveOrUpdateContact(Context context, ISweetContact contact) {
+		getAccountType(context);
+		if (contact == null)
+			return;
+		ContentResolver resolver = context.getContentResolver();
+		if (contact.getId() == null) {// new Contact (not from SugarCRM), save
+										// it
+
+		} else {// update contact in database
+			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+			long rawId = findLocalContact(resolver, contact.getId());
+			if (rawId != 0) {
+				updateContact(resolver, ops, contact, rawId, false);
+				try {
+					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+				} catch (RemoteException e) {
+					Log.e(TAG, "Error saving contact " + e.getMessage());
+					e.printStackTrace();					
+				} catch (OperationApplicationException e) {
+					Log.e(TAG, "Error saving contact " + e.getMessage());
+					e.printStackTrace();
+				}
+
+			}
+		}
+	}
+
 	/**
 	 * Adds a new contact to the database
 	 * 
@@ -239,9 +265,9 @@ public class ContactManager {
 	 *            The contact we want to add
 	 */
 	private static void updateContact(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
-			String accountName, ISweetContact contact, long rawId) {
+			ISweetContact contact, long rawId, boolean sync) {
 		ContentValues values = new ContentValues();
-		updateContactData(resolver, ops, contact, values, rawId);
+		updateContactData(resolver, ops, contact, values, rawId, sync);
 	}
 
 	/**
@@ -309,9 +335,7 @@ public class ContactManager {
 	 *            The back reference for the raw contact op
 	 */
 	private static void updateContactData(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
-			ISweetContact contact, ContentValues values, long rawId) {
-		// TODO: Fix the case where new data has been added (for instance email
-		// before was not set and now it is)
+			ISweetContact contact, ContentValues values, long rawId, boolean sync) {
 		for (int i = 0; i < ContactFields.FIELDS.length; i++) {
 			try {
 				String field = ContactFields.FIELDS[i];
@@ -336,7 +360,7 @@ public class ContactManager {
 				}
 				long dataId = findContactField(resolver, rawId, field);
 				if (dataId != 0) { // if the row exists, update it
-					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId);
+					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
 						builder.withValues(values);
 						ops.add(builder.build());
@@ -395,8 +419,11 @@ public class ContactManager {
 		Cursor c = res.query(entityUri, null, null, null, null);
 		try {
 			if (c.moveToFirst()) {
-				int index = c.getColumnIndex(Data.SYNC1);
-				while (!c.isLast()) {					
+				int index = c.getColumnIndex(Entity.SYNC1);
+				while (!c.isAfterLast()) {
+					if ((contact.getId()==null) && (c.getColumnIndex(RawContacts.SOURCE_ID) != -1)) {
+						contact.setId(c.getString(c.getColumnIndex(RawContacts.SOURCE_ID)));
+					}
 					String field = c.getString(index);
 					if (map.containsKey(field)) {
 						int i = map.get(field);
@@ -406,7 +433,7 @@ public class ContactManager {
 						contact.set(field, c.getString(c.getColumnIndex(data_key)));
 						if (extra_keys != null) {
 							for (int j = 0; j < extra_keys.length; j++) {
-								if (extra_keys[i] != null && extra_fields[i] != null) {
+								if (extra_keys[j] != null && extra_fields[j] != null) {
 									contact.set(extra_fields[j], c.getString(c.getColumnIndex(extra_keys[j])));
 								}
 							}
@@ -454,11 +481,20 @@ public class ContactManager {
 				.withYieldAllowed(true);
 	}
 
-	private static ContentProviderOperation.Builder getDataUpdateBuilder(long dataId) {
-		return ContentProviderOperation
-				.newUpdate(
-							addCallerIsSyncAdapterParameter(ContentUris
-									.withAppendedId(ContactsContract.Data.CONTENT_URI, dataId))).withYieldAllowed(true);
+	private static ContentProviderOperation.Builder getDataUpdateBuilder(long dataId, boolean syncAdapter) {
+		if (syncAdapter) {
+			return ContentProviderOperation.newUpdate(
+														addCallerIsSyncAdapterParameter(ContentUris
+																.withAppendedId(
+																				ContactsContract.Data.CONTENT_URI,
+																				dataId))).withYieldAllowed(true);
+		} else {
+			return ContentProviderOperation.newUpdate(
+														ContentUris.withAppendedId(
+																					ContactsContract.Data.CONTENT_URI,
+																					dataId)).withYieldAllowed(true);
+
+		}
 	}
 
 	private static ContentProviderOperation.Builder getDataInsertBuilder() {

@@ -192,4 +192,59 @@ public class SweetContact implements ISweetContact {
 	public String get(String field) {
 		return mValues.get(field);
 	}
+
+	@Override
+	public String getCity() {
+		return mValues.get(CITY_KEY);
+	}
+
+	@Override
+	public String getCountry() {
+		return mValues.get(COUNTRY_KEY);
+	}
+
+	@Override
+	public String getPostalCode() {		
+		return mValues.get(POSTAL_CODE_KEY);
+	}
+
+	@Override
+	public String getRegion() { 
+		return mValues.get(STATE_KEY);
+	}
+
+	@Override
+	public String getStreet() {
+		return mValues.get(STREET_KEY);
+	}
+
+	@Override
+	public void setCity(String city) {		// 
+		mValues.put(CITY_KEY, city);
+	
+	}
+
+	@Override
+	public void setCountry(String country) {
+	mValues.put(COUNTRY_KEY, country);
+		
+	}
+
+	@Override
+	public void setPostalCode(String postalCode) {
+		mValues.put(POSTAL_CODE_KEY, postalCode);
+		
+	}
+
+	@Override
+	public void setRegion(String region) {
+		mValues.put(STATE_KEY, region);
+		
+	}
+
+	@Override
+	public void setStreet(String street) {
+		mValues.put(STREET_KEY, street);
+		
+	}
 }
