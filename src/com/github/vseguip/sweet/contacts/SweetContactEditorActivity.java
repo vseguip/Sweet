@@ -22,15 +22,9 @@ package com.github.vseguip.sweet.contacts;
 import com.github.vseguip.sweet.R;
 
 import android.app.Activity;
-import android.app.TabActivity;
-import android.content.ContentUris;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract.RawContacts;
-import android.provider.ContactsContract.RawContactsEntity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -40,7 +34,6 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TabHost;
 import android.widget.TextView;
 
 public class SweetContactEditorActivity extends Activity {
@@ -199,7 +192,7 @@ public class SweetContactEditorActivity extends Activity {
 	}
 
 	private boolean validateNotEmpty(EditText edit) {
-		if (TextUtils.isEmpty(edit.getText())) {
+		if (TextUtils.isEmpty(edit.getText()) || TextUtils.isEmpty(edit.getText().toString().trim())) {
 			mSaveButton.setEnabled(false);
 			edit.setBackgroundResource(R.drawable.red_underline);
 			return false;
