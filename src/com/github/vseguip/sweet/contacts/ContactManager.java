@@ -305,6 +305,13 @@ public class ContactManager {
 	private static void updateContact(ContentResolver resolver, ArrayList<ContentProviderOperation> ops,
 			ISweetContact contact, long rawId, boolean sync) {
 		ContentValues values = new ContentValues();
+		if (sync) {
+			//Reset the dirty flag for this contact if we are syncing
+			ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(rawId);
+			values.put(RawContacts.DIRTY, 0);
+			builder.withValues(values);
+			ops.add(builder.build());
+		}
 		updateContactData(resolver, ops, contact, values, rawId, sync);
 	}
 
@@ -391,16 +398,19 @@ public class ContactManager {
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 					values.put(mimetype_key, mimetype);
 					values.put(data_key, data);
-					//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
+					// Update only if the field is different, avoids unneeded
+					// dirty marks and unneeded version increments
 					sb_query.append("(").append(data_key).append(" <> ?)");
 					sb_query_params.add(data);
 					if (type_key != null)
 						values.put(type_key, type);
 					if (extra_keys != null) {
-						for (int j = 0; j < extra_keys.length; j++){
+						for (int j = 0; j < extra_keys.length; j++) {
 							values.put(extra_keys[j], contact.get(extra_fields[j]));
-							//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
-							sb_query.append("OR (").append(extra_keys[j]).append(" <> ?)"); 
+							// Update only if the field is different, avoids
+							// unneeded dirty marks and unneeded version
+							// increments
+							sb_query.append(" OR (").append(extra_keys[j]).append(" <> ?)");
 							sb_query_params.add(contact.get(extra_fields[j]));
 						}
 					}
@@ -410,8 +420,11 @@ public class ContactManager {
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
 						builder.withValues(values);
-						//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
-						builder.withSelection(sb_query.toString(), sb_query_params.toArray(new String[1]));
+						// Update only if the field is different, avoids
+						// unneeded dirty marks and unneeded
+						// version increments if we are not syncing
+						if (!sync)
+							builder.withSelection(sb_query.toString(), sb_query_params.toArray(new String[1]));
 						ops.add(builder.build());
 					}
 				} else {
@@ -470,7 +483,7 @@ public class ContactManager {
 			if (c.moveToFirst()) {
 				int index = c.getColumnIndex(Entity.SYNC1);
 				while (!c.isAfterLast()) {
-					if ((contact.getId()==null) && (c.getColumnIndex(RawContacts.SOURCE_ID) != -1)) {
+					if ((contact.getId() == null) && (c.getColumnIndex(RawContacts.SOURCE_ID) != -1)) {
 						contact.setId(c.getString(c.getColumnIndex(RawContacts.SOURCE_ID)));
 					}
 					String field = c.getString(index);
@@ -527,6 +540,13 @@ public class ContactManager {
 	 */
 	private static ContentProviderOperation.Builder getRawContactInsertBuilder() {
 		return ContentProviderOperation.newInsert(addCallerIsSyncAdapterParameter(RawContacts.CONTENT_URI))
+				.withYieldAllowed(true);
+	}
+
+	private static ContentProviderOperation.Builder getRawContactUpdateBuilder(long rawId) {
+		return ContentProviderOperation.newUpdate(
+													addCallerIsSyncAdapterParameter(ContentUris
+															.withAppendedId(RawContacts.CONTENT_URI, rawId)))
 				.withYieldAllowed(true);
 	}
 
