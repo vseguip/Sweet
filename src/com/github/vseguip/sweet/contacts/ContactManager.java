@@ -60,7 +60,8 @@ public class ContactManager {
 
 	// Gets all dirty contacts from an account
 	private static String DIRTY_CONTACT_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.ACCOUNT_NAME
-			+ "=? AND " + RawContacts.DIRTY + "=1";
+			+ "=? AND " + RawContacts.DIRTY + "=1" + " AND " + RawContacts.SOURCE_ID + " IS NOT NULL";
+
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
@@ -141,7 +142,8 @@ public class ContactManager {
 	}
 
 	/**
-	 * Returns a list of contacts that have been marked as dirty.
+	 * Returns a list of contacts that have been marked as dirty and have a
+	 * source ID (this means they are present in the server too).
 	 * 
 	 * @param context
 	 *            Context calling the function
@@ -149,7 +151,7 @@ public class ContactManager {
 	 *            Account to recover dirty contacts from
 	 * @return List of contacts marked as dirty
 	 */
-	public static List<ISweetContact> getDirtyContacts(Context context, Account account) {
+	public static List<ISweetContact> getLocallyModifiedContacts(Context context, Account account) {
 
 		String query_args[] = new String[] { getAccountType(context), account.name };
 		List<ISweetContact> contacts = new ArrayList<ISweetContact>();
