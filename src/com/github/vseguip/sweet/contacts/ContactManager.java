@@ -58,6 +58,10 @@ public class ContactManager {
 	private static String FIELD_ID_QUERY = ContactsContract.Data.RAW_CONTACT_ID + "=? AND "
 			+ ContactsContract.Data.SYNC1 + "=?";
 
+	// Gets all dirty contacts from an account
+	private static String DIRTY_CONTACT_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.ACCOUNT_NAME
+			+ "=? AND " + RawContacts.DIRTY + "=1";
+
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
 				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY,
@@ -137,6 +141,40 @@ public class ContactManager {
 	}
 
 	/**
+	 * Returns a list of contacts that have been marked as dirty.
+	 * 
+	 * @param context
+	 *            Context calling the function
+	 * @param account
+	 *            Account to recover dirty contacts from
+	 * @return List of contacts marked as dirty
+	 */
+	public static List<ISweetContact> getDirtyContacts(Context context, Account account) {
+
+		String query_args[] = new String[] { getAccountType(context), account.name };
+		List<ISweetContact> contacts = new ArrayList<ISweetContact>();
+		ContentResolver res = context.getContentResolver();
+		Cursor c = res.query(RawContacts.CONTENT_URI, RAW_CONTACT_ID_PROJECTION, DIRTY_CONTACT_QUERY, query_args, null);
+		try {
+			if (c.moveToFirst()) {
+				while (!c.isAfterLast()) {
+					long rawId = c.getLong(0);
+					SweetContact contact = new SweetContact();
+					getContactData(res, rawId, contact);
+					contacts.add(contact);
+					c.moveToNext();
+				}
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "Exception querying dirty contacts" + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			c.close();
+		}
+		return contacts;
+	}
+
+	/**
 	 * Tries to find a raw contact in the local database of the correct account
 	 * type and with the same source ID
 	 * 
@@ -201,7 +239,7 @@ public class ContactManager {
 			return;
 		ContentResolver resolver = context.getContentResolver();
 		if (contact.getId() == null) {// new Contact (not from SugarCRM), save
-										// it
+			// it
 
 		} else {// update contact in database
 			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
@@ -212,7 +250,7 @@ public class ContactManager {
 					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
 				} catch (RemoteException e) {
 					Log.e(TAG, "Error saving contact " + e.getMessage());
-					e.printStackTrace();					
+					e.printStackTrace();
 				} catch (OperationApplicationException e) {
 					Log.e(TAG, "Error saving contact " + e.getMessage());
 					e.printStackTrace();
