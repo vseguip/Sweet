@@ -62,6 +62,9 @@ public class ContactManager {
 	private static String DIRTY_CONTACT_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.ACCOUNT_NAME
 			+ "=? AND " + RawContacts.DIRTY + "=1" + " AND " + RawContacts.SOURCE_ID + " IS NOT NULL";
 
+	// Gets all dirty contacts from an account
+	private static String NEW_LOCAL_CONTACT_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.ACCOUNT_NAME
+			+ "=? AND " + RawContacts.DIRTY + "=1" + " AND " + RawContacts.SOURCE_ID + " IS NULL";
 
 	private static class ContactFields {
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
@@ -174,6 +177,127 @@ public class ContactManager {
 			c.close();
 		}
 		return contacts;
+	}
+
+	/**
+	 * Returns a list of contacts that have been created in the phone and thus
+	 * have no source ID (this means they have to be created in the server too).
+	 * The Id of the contact will thus correspond to the rawID column.
+	 * 
+	 * @param context
+	 *            Context calling the function
+	 * @param account
+	 *            Account to recover dirty contacts from
+	 * @return List of contacts created locally and not yet in the server
+	 */
+	public static List<ISweetContact> getLocallyCreatedContacts(Context context, Account account) {
+
+		String query_args[] = new String[] { getAccountType(context), account.name };
+		List<ISweetContact> contacts = new ArrayList<ISweetContact>();
+		ContentResolver res = context.getContentResolver();
+		Cursor c = res.query(
+								RawContacts.CONTENT_URI,
+								RAW_CONTACT_ID_PROJECTION,
+								NEW_LOCAL_CONTACT_QUERY,
+								query_args,
+								null);
+		try {
+			if (c.moveToFirst()) {
+				while (!c.isAfterLast()) {
+					long rawId = c.getLong(0);
+					SweetContact contact = new SweetContact();
+					getContactData(res, rawId, contact);
+					if (contact.getId() == null) {// this should always be
+						// null!!
+						contact.setId(Long.toString(rawId));
+						if ((contact.getFirstName() == null) || (contact.getLastName() == null)) {
+							// this happens because we added the contact with
+							// the
+							// default android contact app that does not set the
+							// sync fields properly
+							// In this case we insert profile field and attempt
+							// to recover
+							// first and last name
+							fixContactAdded(res, account, contact);
+						}
+						//add to list if we could fix it.
+						if ((contact.getFirstName() != null) || (contact.getLastName() != null))
+							contacts.add(contact);
+					}
+					c.moveToNext();
+				}
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "Exception querying dirty contacts" + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			c.close();
+		}
+		return contacts;
+	}
+
+	/**
+	 * Fixes the entry of a local contact that has not been created correctly.
+	 * Will insert a profile entry and try to recover the name and set the
+	 * appropiate sync fields for the StructuredName element
+	 * 
+	 * @param res
+	 * @param contact
+	 */
+	private static void fixContactAdded(ContentResolver res, Account account, SweetContact contact) {
+
+		long rawId = Long.parseLong(contact.getId());
+		try {
+			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();		
+			// Fix adding profile entry
+			ContentProviderOperation.Builder builder = getRawContactInsertBuilder();
+			builder = getDataInsertBuilder();
+			builder.withValue(ContactsContract.Data.MIMETYPE, "vnd.android.cursor.item/vnd.sweet.github.com.profile");
+			if (account != null)
+				builder.withValue(ContactsContract.Data.DATA1, account.name);
+			builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
+			builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
+			ops.add(builder.build());
+			//Attempt to fix name entry
+			long nameDataID = findNameDateId(res, rawId, contact);
+			if (nameDataID != 0) {
+				// add sync field for name!
+				builder = getDataUpdateBuilder(nameDataID, true);
+				builder.withValue(Data.SYNC1, ISweetContact.FIRST_NAME_KEY);
+				ops.add(builder.build());
+				try {
+					res.applyBatch(ContactsContract.AUTHORITY, ops);
+				} catch (RemoteException e) {
+					Log.e(TAG, "Error trying to fix locally added contact");
+					e.printStackTrace();
+				} catch (OperationApplicationException e) {
+					Log.e(TAG, "Error trying to fix locally added contact");
+					e.printStackTrace();
+				}
+				
+			}
+		} catch (NumberFormatException n) {
+
+		}
+	}
+
+	private static long findNameDateId(ContentResolver res, long rawId, SweetContact contact) {
+		long dataId = 0;
+		Cursor c = res.query(ContactsContract.Data.CONTENT_URI, new String[] { Data._ID, StructuredName.GIVEN_NAME,
+				StructuredName.FAMILY_NAME }, Data.RAW_CONTACT_ID + "= ? AND " + Data.MIMETYPE + " = "
+				+ StructuredName.CONTENT_ITEM_TYPE, new String[] { Long.toString(rawId) }, null);
+		try {
+			if (c.moveToFirst()) {
+				dataId = c.getLong(0);
+				contact.setFirstName(c.getString(1));
+				contact.setLastName(c.getString(2));
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			c.close();
+		}
+		return dataId;
 	}
 
 	/**
@@ -308,7 +432,7 @@ public class ContactManager {
 			ISweetContact contact, long rawId, boolean sync) {
 		ContentValues values = new ContentValues();
 		if (sync) {
-			//Reset the dirty flag for this contact if we are syncing
+			// Reset the dirty flag for this contact if we are syncing
 			ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(rawId);
 			values.put(RawContacts.DIRTY, 0);
 			builder.withValues(values);
