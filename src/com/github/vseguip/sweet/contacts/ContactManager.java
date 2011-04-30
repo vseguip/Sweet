@@ -347,15 +347,24 @@ public class ContactManager {
 				Integer type = ContactFields.TYPES[i];
 				String[] extra_keys = ContactFields.EXTRA_KEYS[i];
 				String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
+				StringBuilder sb_query = new StringBuilder();
+				ArrayList<String> sb_query_params = new ArrayList<String>();
 				values.clear();
 				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 					values.put(mimetype_key, mimetype);
 					values.put(data_key, data);
+					//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
+					sb_query.append("(").append(data_key).append(" <> ?)");
+					sb_query_params.add(data);
 					if (type_key != null)
 						values.put(type_key, type);
 					if (extra_keys != null) {
-						for (int j = 0; j < extra_keys.length; j++)
+						for (int j = 0; j < extra_keys.length; j++){
 							values.put(extra_keys[j], contact.get(extra_fields[j]));
+							//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
+							sb_query.append("OR (").append(extra_keys[j]).append(" <> ?)"); 
+							sb_query_params.add(contact.get(extra_fields[j]));
+						}
 					}
 				}
 				long dataId = findContactField(resolver, rawId, field);
@@ -363,6 +372,8 @@ public class ContactManager {
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
 						builder.withValues(values);
+						//Update only if the field is different, avoids unneeded dirty marks and unneeded version increments
+						builder.withSelection(sb_query.toString(), sb_query_params.toArray(new String[1]));
 						ops.add(builder.build());
 					}
 				} else {
