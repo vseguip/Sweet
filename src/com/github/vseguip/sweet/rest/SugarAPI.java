@@ -31,7 +31,36 @@ import android.content.Context;
 import android.os.Handler;
 
 public interface SugarAPI {
+
+	/**
+	 * Set the remote server URI.
+	 * 
+	 * @param server
+	 *            The URI to the remote JSON rest.php (e.g.
+	 *            http://localhost/sugarcrm/service/v2/rest.php
+	 * @throws URISyntaxException
+	 * 
+	 */
+
 	public abstract void setServer(String server) throws URISyntaxException;
+
+	/**
+	 * Login the SugarCRM and get an autorization token to be used in future
+	 * calls
+	 * 
+	 * @param username
+	 *            The SugarCRM username
+	 * @param passwd
+	 *            The sugarCRM password
+	 * @param context
+	 *            The context invoking the call
+	 * @param handler
+	 *            A handler object to post the results asynchronously
+	 * @return The authorization token
+	 * 
+	 */
+
+	public abstract String getToken(String username, String passwd, Context context, Handler handler);
 
 	/**
 	 * Get contacts created, modified or deleted since a date.
@@ -44,8 +73,23 @@ public interface SugarAPI {
 	 *            greater than or equal to (>=) date.
 	 * 
 	 */
-	public List<ISweetContact> getNewerContacts(String token, String date) throws AuthenticationException, IOException;
+	public abstract List<ISweetContact> getNewerContacts(String token, String date) throws AuthenticationException,
+			IOException;
 
-	public abstract String getToken(String username, String passwd, Context context, Handler handler);
+	/**
+	 * Send contacts to server and create them if needed. If contacts have no ID
+	 * (e.g. they have been created locally but not in the server, get their new
+	 * id and set it in the list.
+	 * 
+	 * @param token
+	 *            The SessionID token gotten by getToken
+	 * @param contact
+	 *            The list of contacts we want to send/create
+	 * 
+	 * @return The List of ID's (in the same order) that was sent to the server.
+	 *         If an object was created remotely this will contain the new Id
+	 */
+	public abstract List<String> sendNewContacts(String mAuthToken, List<ISweetContact> contacts, boolean createRemote) throws AuthenticationException,
+	IOException;
 
 }

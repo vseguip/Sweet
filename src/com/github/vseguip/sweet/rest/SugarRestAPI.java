@@ -39,10 +39,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +55,7 @@ import com.github.vseguip.sweet.contacts.ISweetContact;
 
 import android.content.Context;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 
 /*Imeplementa un API para acceder a SugarCRM
@@ -62,6 +65,8 @@ import android.util.Log;
  * */
 public class SugarRestAPI implements SugarAPI {
 
+	private static final String SUGARCRM_CONTACT_ID_FIELD = "id";
+
 	private static final String SUGARCRM_ACCOUNT_ID_FIELD = "account_id";
 
 	private static final String SUGARCRM_DATE_MODIFIED_FIELD = "date_modified";
@@ -69,7 +74,7 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGARCRM_PHONE_WORK_FIELD = "phone_work";
 
 	private static final String SUGARCRM_PHONE_MOBILE_FIELD = "phone_mobile";
-	
+
 	private static final String SUGARCRM_FAX_WORK_FIELD = "phone_fax";
 
 	private static final String SUGARCRM_EMAIL1_FIELD = "email1";
@@ -97,6 +102,7 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String TAG = "SugarRestAPI";
 	private static final String LOGIN_METHOD = "login";
 	private static final String GET_METHOD = "get_entry_list";
+	private static final String SET_METHOD = "set_entries";
 
 	private static final String SUGAR_MODULE_CONTACTS = "Contacts";
 	private static final String SUGAR_CONTACTS_QUERY = "";
@@ -205,11 +211,12 @@ public class SugarRestAPI implements SugarAPI {
 		JSONArray jso_array = new JSONArray();
 		JSONArray jso_fields = new JSONArray();
 		// TODO: add newer fields (adress and other phones)
-		jso_fields.put("id").put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD).put(SUGARCRM_TITLE_FIELD)
-				.put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD).put(SUGARCRM_EMAIL1_FIELD)
-				.put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD).put(SUGARCRM_FAX_WORK_FIELD).put(SUGARCRM_STREET_FIELD)
-				.put(SUGARCRM_CITY_FIELD).put(SUGARCRM_STATE_FIELD).put(SUGARCRM_POSTAL_CODE_FIELD)
-				.put(SUGARCRM_COUNTRY_FIELD).put(SUGARCRM_DATE_MODIFIED_FIELD);
+		jso_fields.put(SUGARCRM_CONTACT_ID_FIELD).put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD)
+				.put(SUGARCRM_TITLE_FIELD).put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD)
+				.put(SUGARCRM_EMAIL1_FIELD).put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD)
+				.put(SUGARCRM_FAX_WORK_FIELD).put(SUGARCRM_STREET_FIELD).put(SUGARCRM_CITY_FIELD)
+				.put(SUGARCRM_STATE_FIELD).put(SUGARCRM_POSTAL_CODE_FIELD).put(SUGARCRM_COUNTRY_FIELD)
+				.put(SUGARCRM_DATE_MODIFIED_FIELD);
 		String sugar_query = SUGAR_CONTACTS_QUERY;
 		if (date != null)
 			sugar_query = "(contacts.date_modified >= '" + date + "')";
@@ -247,9 +254,10 @@ public class SugarRestAPI implements SugarAPI {
 						// ID, first name and last name are compulsory, the rest
 						// can be skipped
 						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
-						contacts.add(new SweetContact(entrada.getJSONObject("id").getString("value"), entrada
-								.getJSONObject(SUGARCRM_FIRST_NAME_FIELD).getString("value"), entrada
-								.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
+						contacts.add(new SweetContact(entrada.getJSONObject(SUGARCRM_CONTACT_ID_FIELD)
+								.getString("value"), entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD)
+								.getString("value"),
+								entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
 								getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_NAME_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_ID_FIELD, ""),
@@ -258,8 +266,10 @@ public class SugarRestAPI implements SugarAPI {
 								getSugarValue(entrada, SUGARCRM_PHONE_MOBILE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_FAX_WORK_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_STREET_FIELD, ""),
-								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), 
-								getSugarValue(entrada, SUGARCRM_STATE_FIELD,""),
+								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), getSugarValue(
+																								entrada,
+																								SUGARCRM_STATE_FIELD,
+																								""),
 								getSugarValue(entrada, SUGARCRM_POSTAL_CODE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_COUNTRY_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_DATE_MODIFIED_FIELD, "")));
@@ -290,6 +300,99 @@ public class SugarRestAPI implements SugarAPI {
 
 		}
 		return null;
+	}
+
+	@Override
+	public List<String> sendNewContacts(String token, List<ISweetContact> contacts, boolean create) throws IOException,
+			AuthenticationException {
+		final HttpResponse resp;
+		ArrayList<String> listaIds = new ArrayList<String>();
+		Log.i(TAG, "sendNewContacts()");
+
+		JSONArray jsonData = new JSONArray();
+		JSONArray jsonContactList = new JSONArray();
+		// TODO: add newer fields (adress and other phones)
+		for (ISweetContact c : contacts) {
+			JSONArray jsonContactArray = new JSONArray();
+			try {
+				if (!create)
+					setJsonFieldEntry(jsonContactArray, SUGARCRM_CONTACT_ID_FIELD, c.getId());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_FIRST_NAME_FIELD, c.getFirstName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_LAST_NAME_FIELD, c.getLastName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_TITLE_FIELD, c.getTitle());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_ACCOUNT_NAME_FIELD, c.getAccountName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_ACCOUNT_ID_FIELD, c.getAccountId());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_EMAIL1_FIELD, c.getEmail1());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_PHONE_WORK_FIELD, c.getWorkPhone());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_PHONE_MOBILE_FIELD, c.getMobilePhone());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_FAX_WORK_FIELD, c.getWorkFax());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_STREET_FIELD, c.getStreet());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_CITY_FIELD, c.getCity());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_STATE_FIELD, c.getCountry());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_POSTAL_CODE_FIELD, c.getPostalCode());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_DATE_MODIFIED_FIELD, c.getDateModified());
+				jsonContactList.put(jsonContactArray);
+			} catch (JSONException e) {
+				Log.e(TAG, "Error sending contact to the server");
+				e.printStackTrace();
+			}
+
+		}
+		jsonData.put(token).put(SUGAR_MODULE_CONTACTS).put(jsonContactList);
+
+		final HttpPost post = prepareJSONRequest(jsonData.toString(), SET_METHOD);
+		HttpClient httpClient = getConnection();
+		Log.i(TAG, "Sending request");
+
+		resp = httpClient.execute(post);
+		Log.i(TAG, "Got response");
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			Log.i(TAG, "Buffering request");
+			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = rd.readLine()) != null) {
+				sb.append(line);
+			}
+			rd.close();
+			String message = sb.toString();
+			Log.i(TAG, "Set entries result: " + message);
+			JSONObject response = null;
+			try {
+				response = (JSONObject) new JSONTokener(message).nextValue();
+				JSONArray ids = response.getJSONArray("ids");
+				for (int i = 0; i < ids.length(); i++) {
+					listaIds.add(ids.getString(i));
+				}
+			} catch (Exception e) {
+				if (response != null) {
+					Log.i(TAG, "Error parsing json in sendNewContacts. Auth invalid");
+					try {
+						throw new AuthenticationException(response.getString("description"));
+					} catch (JSONException ex) {
+						throw new AuthenticationException("Invalid session");
+					}
+				}
+			}
+		}
+		return listaIds;
+	}
+
+	/**
+	 * Prepares a JSON entry from a value and a field Name
+	 * 
+	 * @param jsonContactArray
+	 *            The array to put the entry
+	 * @param fieldName
+	 *            The SugarCRM field name
+	 * @param vale
+	 *            The value of the entry
+	 * @throws JSONException
+	 */
+	private void setJsonFieldEntry(JSONArray jsonContactArray, String fieldName, String value) throws JSONException {
+		if ((value != null) && (!TextUtils.isEmpty(value.trim()))) {
+			jsonContactArray.put(new JSONObject().put("name", fieldName).put("value", value));
+		}
 	}
 
 	private String getSugarValue(JSONObject json, String key, String d) {
@@ -323,9 +426,9 @@ public class SugarRestAPI implements SugarAPI {
 			params.add(new BasicNameValuePair(KEY_PARAM_INPUT_TYPE, JSON));
 			params.add(new BasicNameValuePair(KEY_PARAM_RESPONSE_TYPE, JSON));
 			params.add(new BasicNameValuePair("rest_data", rest_data));
-			entity = new UrlEncodedFormEntity(params, HTTP.UTF_8);			
+			entity = new UrlEncodedFormEntity(params, HTTP.UTF_8);
 			final HttpPost post = new HttpPost(mServer);
-			post.addHeader(entity.getContentType());			
+			post.addHeader(entity.getContentType());
 			post.setEntity(entity);
 			return post;
 
