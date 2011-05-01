@@ -36,7 +36,7 @@
 					
 				</TableRow>-->
 				<TableRow>
-					<TextView android:text="@string/first_name" style="@style/textNormal" />
+					<TextView android:text="@string/firstName" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textFirstName"
 						android:imeOptions="actionNext" android:inputType="textPersonName"
@@ -44,7 +44,7 @@
 
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/last_name" style="@style/textNormal" />
+					<TextView android:text="@string/lastName" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textLastName"
 						android:inputType="textPersonName" android:imeOptions="actionNext"
@@ -52,7 +52,7 @@
 
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/organization" style="@style/textNormal" />
+					<TextView android:text="@string/accountName" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:imeOptions="actionNext" android:layout_height="wrap_content"
 						android:id="@+id/textOrganization" android:enabled="false"
@@ -67,10 +67,10 @@
 
 				</TableRow>
 			</TableLayout>
-			<TextView android:text="Contact information" style="@style/textSubtitle" />
+			<TextView android:text="@string/contact_information" style="@style/textSubtitle" />
 			<TableLayout style="@style/infoBox">
 				<TableRow>
-					<TextView android:text="@string/work" style="@style/textNormal" />
+					<TextView android:text="@string/workPhone" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textWorkPhone"
 						android:imeOptions="actionNext" android:phoneNumber="true"
@@ -78,7 +78,7 @@
 
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/mobile" style="@style/textNormal" />
+					<TextView android:text="@string/mobilePhone" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textMobilePhone"
 						android:phoneNumber="true" android:imeOptions="actionNext"
@@ -86,14 +86,14 @@
 
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/fax" style="@style/textNormal" />
+					<TextView android:text="@string/workFax" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:phoneNumber="true" android:layout_height="wrap_content"
 						android:id="@+id/textFaxNumber" style="@style/SweetTextEdit" />
 
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/email"  style="@style/textNormal"></TextView>
+					<TextView android:text="@string/email1"  style="@style/textNormal"></TextView>
 					<EditText android:layout_width="wrap_content"
 						android:inputType="textEmailAddress" android:layout_height="wrap_content"
 						android:id="@+id/textEmail" android:imeOptions="actionNext"
@@ -120,14 +120,14 @@
 						style="@style/SweetTextEdit" />
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/postal_code" style="@style/textNormal" />
+					<TextView android:text="@string/postalCode" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textPostalCode"
 						android:imeOptions="actionNext" android:inputType="textPostalAddress"
 						style="@style/SweetTextEdit" />
 				</TableRow>
 				<TableRow>
-					<TextView android:text="@string/region" style="@style/textNormal" />
+					<TextView android:text="@string/state" style="@style/textNormal" />
 					<EditText android:layout_width="wrap_content"
 						android:layout_height="wrap_content" android:id="@+id/textRegion"
 						android:imeOptions="actionNext" android:inputType="textPostalAddress"

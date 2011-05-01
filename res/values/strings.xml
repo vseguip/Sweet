@@ -14,28 +14,28 @@
 	<string name="createAccount">Create Account</string>
 	<!-- For the contact editor activity -->
 	<string name="contact">Contact</string>
-	<string name="first_name">First name</string>
-	<string name="last_name">Last name</string>
-	<string name="organization">Organization</string>
+	<string name="firstName">First name</string>
+	<string name="lastName">Last name</string>
+	<string name="accountName">Organization</string>
 	<string name="title">Title</string>
 	<string name="sample">Abdul Musico</string>
 	
-	<string name="phone">Phone</string>
-	<string name="work">Work</string>
-	<string name="mobile">Mobile</string>
-	<string name="fax">Fax</string>
-	<string name="email">Email</string>
+	<string name="contact_information">Contact information</string>
+	<string name="workPhone">Work</string>
+	<string name="mobilePhone">Mobile</string>
+	<string name="workFax">Fax</string>
+	<string name="email1">Email</string>
 	
 	<string name="address">Address</string>	
 	<string name="street">Street</string>
 	<string name="city">City</string>
-	<string name="postal_code">Postal code</string>
-	<string name="region">Region</string>
+	<string name="postalCode">Postal code</string>
+	<string name="state">Region</string>
 	<string name="country">Country</string>
 		<!-- End contact editor activity -->
 	<string name="validationOk">Your account settings have been validated
 		successfully. Press the create button to create your account.</string>
-	<string name="account_type">com.github.vseguip.sweet.account</string>
+	
 	<string name="account_label">Sweet account</string>
 	<string name="sync_preferences">Sweet synchronization preferences</string>
 	<string name="sync_notifications_summary">Check this is you want to sync leads and calls with SugarCRM</string>
@@ -53,6 +53,21 @@
 	<string name="activity_check_update">Please check and update your account data settings</string>
 	<string name="sync_conflict">Conflict resolution</string>
 	<string name="server_resolve">server_resolve</string>
-	<string name="server_resolve_title">Prefer server</string>
+	<string name="server_resolve_title">Prefer server</string>	
 	<string name="server_resolve_summary">Use server data when there is a conflict between locally modified contacts and server modified contacts</string>
+	<!--  UI for conflict resolving -->
+	<string name="notify_sync_conflict_message">Press to resolve conflicts when syncing to SugarCRM.</string>
+	<string name="notify_sync_conflict_title">Pending conflicts.</string>
+	<string name="notify_sync_conflict_ticket">Sweet sync conflict</string>
+	<string name="resolve">Resolve</string>
+	<string name="resolve_conflict">Resolving contact </string>
+	<string name="conflict_choose_field">Choose the preferred source for each conflicting field</string>
+	<string name="spinner_tag_field">spinner_tag_field</string>
+	<string name="spinner_tag_local">spinner_tag_local</string>
+	<string name="spinner_tag_remote">spinner_tag_remote</string>
+	
+	<!--   -->
+<!-- CONSTANTS FOR AUTHORITY AND ACCOUNT TYPE -->
+<string name="account_type">com.github.vseguip.sweet.account</string>
+		
 </resources>
