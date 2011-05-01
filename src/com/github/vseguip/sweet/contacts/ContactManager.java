@@ -19,6 +19,7 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.contacts;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,13 +161,15 @@ public class ContactManager {
 		String query_args[] = new String[] { getAccountType(context), account.name };
 		List<ISweetContact> contacts = new ArrayList<ISweetContact>();
 		ContentResolver res = context.getContentResolver();
-		Cursor c = res.query(RawContacts.CONTENT_URI, RAW_CONTACT_ID_PROJECTION, DIRTY_CONTACT_QUERY, query_args, null);
+		Cursor c = res.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID, RawContacts.SOURCE_ID, ContactFields.MODIFIED_DATE_COLUMN}, DIRTY_CONTACT_QUERY, query_args, null);
 		try {
 			if (c.moveToFirst()) {
 				while (!c.isAfterLast()) {
 					long rawId = c.getLong(0);
 					SweetContact contact = new SweetContact();
 					getContactData(res, rawId, contact);
+					//contact.setId(c.getString(1));
+					contact.setDateModified(c.getString(2));
 					contacts.add(contact);
 					c.moveToNext();
 				}
@@ -211,7 +214,7 @@ public class ContactManager {
 					if (contact.getId() == null) {// this should always be
 						// null!!
 						contact.setId(Long.toString(rawId));
-						if ((contact.getFirstName() == null) || (contact.getLastName() == null)) {
+						if ((contact.getFirstName() == null) || (contact.getLastName() == null) || (!hasSugarProfileEntry(res, rawId))) {
 							// this happens because we added the contact with
 							// the
 							// default android contact app that does not set the
@@ -221,7 +224,7 @@ public class ContactManager {
 							// first and last name
 							fixContactAdded(res, account, contact);
 						}
-						//add to list if we could fix it.
+						// add to list if we could fix it.
 						if ((contact.getFirstName() != null) || (contact.getLastName() != null))
 							contacts.add(contact);
 					}
@@ -249,17 +252,22 @@ public class ContactManager {
 
 		long rawId = Long.parseLong(contact.getId());
 		try {
-			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();		
+			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 			// Fix adding profile entry
-			ContentProviderOperation.Builder builder = getRawContactInsertBuilder();
-			builder = getDataInsertBuilder();
-			builder.withValue(ContactsContract.Data.MIMETYPE, "vnd.android.cursor.item/vnd.sweet.github.com.profile");
-			if (account != null)
-				builder.withValue(ContactsContract.Data.DATA1, account.name);
-			builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
-			builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
-			ops.add(builder.build());
-			//Attempt to fix name entry
+			ContentProviderOperation.Builder builder;
+			if (!hasSugarProfileEntry(res, rawId)) {
+				builder = getDataInsertBuilder();
+				builder.withValue(ContactsContract.Data.RAW_CONTACT_ID, rawId);
+				builder.withValue(
+									ContactsContract.Data.MIMETYPE,
+									"vnd.android.cursor.item/vnd.sweet.github.com.profile");
+				if (account != null)
+					builder.withValue(ContactsContract.Data.DATA1, account.name);
+				builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
+				builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
+				ops.add(builder.build());
+			}
+			// Attempt to fix name entry
 			long nameDataID = findNameDateId(res, rawId, contact);
 			if (nameDataID != 0) {
 				// add sync field for name!
@@ -274,8 +282,11 @@ public class ContactManager {
 				} catch (OperationApplicationException e) {
 					Log.e(TAG, "Error trying to fix locally added contact");
 					e.printStackTrace();
+				} catch (Exception e) {
+					Log.e(TAG, "Error trying to fix locally added contact");
+					e.printStackTrace();
 				}
-				
+
 			}
 		} catch (NumberFormatException n) {
 
@@ -285,8 +296,8 @@ public class ContactManager {
 	private static long findNameDateId(ContentResolver res, long rawId, SweetContact contact) {
 		long dataId = 0;
 		Cursor c = res.query(ContactsContract.Data.CONTENT_URI, new String[] { Data._ID, StructuredName.GIVEN_NAME,
-				StructuredName.FAMILY_NAME }, Data.RAW_CONTACT_ID + "= ? AND " + Data.MIMETYPE + " = "
-				+ StructuredName.CONTENT_ITEM_TYPE, new String[] { Long.toString(rawId) }, null);
+				StructuredName.FAMILY_NAME }, Data.RAW_CONTACT_ID + "= ? AND " + Data.MIMETYPE + " = ?", new String[] {
+				Long.toString(rawId), StructuredName.CONTENT_ITEM_TYPE }, null);
 		try {
 			if (c.moveToFirst()) {
 				dataId = c.getLong(0);
@@ -299,6 +310,16 @@ public class ContactManager {
 			c.close();
 		}
 		return dataId;
+	}
+
+	private static boolean hasSugarProfileEntry(ContentResolver res, long rawId) {
+		boolean found = false;
+		Cursor c = res.query(ContactsContract.Data.CONTENT_URI, new String[] { Data._ID }, Data.RAW_CONTACT_ID
+				+ "= ? AND " + Data.MIMETYPE + " = ?", new String[] { Long.toString(rawId),
+				"vnd.android.cursor.item/vnd.sweet.github.com.profile" }, null);
+		found = (c.getCount() > 0);
+		c.close();
+		return found;
 	}
 
 	/**
@@ -599,8 +620,83 @@ public class ContactManager {
 		if (rawId != 0) {
 			contact = new SweetContact();
 			getContactData(res, rawId, contact);
+			
 		}
 		return contact;
+	}
+
+	/**
+	 * Assigns a list of Id's generated by the SugarCRM to the local contact.
+	 * This effectively binds the local contact with the remote one
+	 * 
+	 * @param context
+	 *            Context of the caller
+	 * @param contacts
+	 *            List of contacts. The id field should correspond to the
+	 *            RawContact Id
+	 * @param newIds
+	 *            List of Id's returned by SugarCRM. Must be of the same length
+	 *            as the list of contacts
+	 */
+
+	public static void assignSourceIds(Context context, List<ISweetContact> contacts, List<String> newIds) {
+		if (contacts.size() != newIds.size()) {
+			// TODO: Something wrong happened should notify the user!
+			return;
+		}
+		ContentResolver res = context.getContentResolver();
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+		for (int i = 0; i < contacts.size(); i++) {
+			ISweetContact contact = contacts.get(i);
+			ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(Long.parseLong(contact.getId()));
+			builder.withValue(RawContacts.SOURCE_ID, newIds.get(i));
+			ops.add(builder.build());
+		}
+		try {
+			res.applyBatch(ContactsContract.AUTHORITY, ops);
+			for (int i = 0; i < contacts.size(); i++) {
+				contacts.get(i).setId(newIds.get(i));
+			}
+		} catch (RemoteException e) {
+			Log.e(TAG, "Error assigning SOURCE_ID to local id " + e.getLocalizedMessage());
+			e.printStackTrace();
+		} catch (OperationApplicationException e) {
+			Log.e(TAG, "Error assigning SOURCE_ID to local id " + e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Cleans the dirty flag of a list of contacts.
+	 * 
+	 * @param context
+	 *            Context of the caller
+	 * @param contacts
+	 *            List of contacts. The id field should correspond to the
+	 *            RawContact Id
+	 * 
+	 */
+	public static void cleanDirtyFlag(Context mContext, List<ISweetContact> contacts) {
+		ContentResolver res = mContext.getContentResolver();
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+		for (int i = 0; i < contacts.size(); i++) {
+			ISweetContact contact = contacts.get(i);
+			long rawId = findLocalContact(res, contact.getId());
+			if (rawId != 0) {
+				ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(rawId);
+				builder.withValue(RawContacts.DIRTY, "0");
+				ops.add(builder.build());
+			}
+		}
+		try {
+			res.applyBatch(ContactsContract.AUTHORITY, ops);
+		} catch (RemoteException e) {
+			Log.e(TAG, "Error assigning SOURCE_ID to local id " + e.getLocalizedMessage());
+			e.printStackTrace();
+		} catch (OperationApplicationException e) {
+			Log.e(TAG, "Error assigning SOURCE_ID to local id " + e.getLocalizedMessage());
+			e.printStackTrace();
+		}
 	}
 
 	private static void getContactData(ContentResolver res, long rawId, ISweetContact contact) {
@@ -616,7 +712,7 @@ public class ContactManager {
 			if (c.moveToFirst()) {
 				int index = c.getColumnIndex(Entity.SYNC1);
 				while (!c.isAfterLast()) {
-					if ((contact.getId() == null) && (c.getColumnIndex(RawContacts.SOURCE_ID) != -1)) {
+					if (TextUtils.isEmpty(contact.getId()) && (c.getColumnIndex(RawContacts.SOURCE_ID) != -1)) {
 						contact.setId(c.getString(c.getColumnIndex(RawContacts.SOURCE_ID)));
 					}
 					String field = c.getString(index);
