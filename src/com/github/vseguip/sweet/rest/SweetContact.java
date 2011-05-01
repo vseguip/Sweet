@@ -31,21 +31,21 @@ public class SweetContact implements ISweetContact {
 	public SweetContact() {
 		super();
 		mValues = new HashMap<String, String>();
-		mValues.put(ID_KEY, null);
-		mValues.put(FIRST_NAME_KEY, null);
-		mValues.put(LAST_NAME_KEY, null);
-		mValues.put(TITLE_KEY, null);
-		mValues.put(ACCOUNT_NAME_KEY, null);
-		mValues.put(ACCOUNT_ID_KEY, null);
-		mValues.put(EMAIL1_KEY, null);
-		mValues.put(WORK_PHONE_KEY, null);
-		mValues.put(MOBILE_PHONE_KEY, null);
-		mValues.put(WORK_FAX_KEY, null);
-		mValues.put(STREET_KEY, null);
-		mValues.put(CITY_KEY, null);
-		mValues.put(STATE_KEY, null);
-		mValues.put(POSTAL_CODE_KEY, null);
-		mValues.put(COUNTRY_KEY, null);
+		mValues.put(ID_KEY, "");
+		mValues.put(FIRST_NAME_KEY, "");
+		mValues.put(LAST_NAME_KEY, "");
+		mValues.put(TITLE_KEY, "");
+		mValues.put(ACCOUNT_NAME_KEY, "");
+		mValues.put(ACCOUNT_ID_KEY, "");
+		mValues.put(EMAIL1_KEY, "");
+		mValues.put(WORK_PHONE_KEY, "");
+		mValues.put(MOBILE_PHONE_KEY, "");
+		mValues.put(WORK_FAX_KEY, "");
+		mValues.put(STREET_KEY, "");
+		mValues.put(CITY_KEY, "");
+		mValues.put(STATE_KEY, "");
+		mValues.put(POSTAL_CODE_KEY, "");
+		mValues.put(COUNTRY_KEY, "");
 		setDateModified(null);
 	}
 

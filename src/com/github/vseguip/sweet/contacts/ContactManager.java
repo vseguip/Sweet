@@ -67,6 +67,7 @@ public class ContactManager {
 			+ "=? AND " + RawContacts.DIRTY + "=1" + " AND " + RawContacts.SOURCE_ID + " IS NULL";
 
 	private static class ContactFields {
+		private static String MODIFIED_DATE_COLUMN = RawContacts.SYNC2;
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
 				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY,
 				ISweetContact.WORK_FAX_KEY, ISweetContact.CITY_KEY };
@@ -84,7 +85,7 @@ public class ContactManager {
 				Phone.TYPE_FAX_WORK, StructuredPostal.TYPE_WORK };
 		private static String[][] EXTRA_KEYS = {
 				{ StructuredName.FAMILY_NAME },
-				{ Organization.TITLE },
+				{ Organization.TITLE, Organization.SYNC2 },				
 				null,
 				null,
 				null,
@@ -92,7 +93,7 @@ public class ContactManager {
 				{ StructuredPostal.STREET, StructuredPostal.COUNTRY, StructuredPostal.POSTCODE, StructuredPostal.REGION } };
 		private static String[][] EXTRA_FIELDS = {
 				{ ISweetContact.LAST_NAME_KEY },
-				{ ISweetContact.TITLE_KEY },
+				{ ISweetContact.TITLE_KEY, ISweetContact.ACCOUNT_ID_KEY },
 				null,
 				null,
 				null,
@@ -405,6 +406,7 @@ public class ContactManager {
 		values.put(RawContacts.SOURCE_ID, contact.getId());
 		values.put(RawContacts.ACCOUNT_NAME, accountName);
 		values.put(RawContacts.ACCOUNT_TYPE, getAccountType());
+		values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
 
 		builder.withValues(values);
 		ops.add(builder.build());
@@ -432,9 +434,10 @@ public class ContactManager {
 			ISweetContact contact, long rawId, boolean sync) {
 		ContentValues values = new ContentValues();
 		if (sync) {
-			// Reset the dirty flag for this contact if we are syncing
+			// Reset the dirty flag for this contact if we are syncing and update modified time
 			ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(rawId);
 			values.put(RawContacts.DIRTY, 0);
+			values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
 			builder.withValues(values);
 			ops.add(builder.build());
 		}
@@ -545,6 +548,9 @@ public class ContactManager {
 				if (dataId != 0) { // if the row exists, update it
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
+						values.put(Data.SYNC1, field);// insert wich field generated
+						sb_query.append(" OR (").append(Data.SYNC1).append(" <> ?)");
+						sb_query_params.add(field);
 						builder.withValues(values);
 						// Update only if the field is different, avoids
 						// unneeded dirty marks and unneeded
@@ -559,6 +565,7 @@ public class ContactManager {
 					if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 						if (values.size() > 0) {
 							values.put(Data.RAW_CONTACT_ID, rawId);
+							values.put(Data.SYNC1, field);// insert wich field generated
 							builder.withValues(values);
 							ops.add(builder.build());
 						}
