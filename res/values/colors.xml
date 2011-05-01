@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="selected_field">#ff000000</color>
+	<color name="unselected_field">#33000000</color>
+</resources>
+

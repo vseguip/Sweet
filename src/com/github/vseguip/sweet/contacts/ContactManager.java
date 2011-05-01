@@ -19,7 +19,6 @@ If not, see http://www.gnu.org/licenses/.
 
 package com.github.vseguip.sweet.contacts;
 
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -168,7 +167,7 @@ public class ContactManager {
 					long rawId = c.getLong(0);
 					SweetContact contact = new SweetContact();
 					getContactData(res, rawId, contact);
-					//contact.setId(c.getString(1));
+					contact.setId(c.getString(1));
 					contact.setDateModified(c.getString(2));
 					contacts.add(contact);
 					c.moveToNext();
