@@ -129,7 +129,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 	private AccountManager mAccountManager;
 	private String mAuthToken;
 	private final String TAG = "SweetContactSync";
-	private static final String LAST_SYNC_KEY = "lastSync";
+	static final String LAST_SYNC_KEY = "lastSync";
 
 	public SweetContactSync(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
@@ -262,12 +262,13 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				}
 				ContactManager.cleanDirtyFlag(mContext, resolvedContacts);
 				if (conflictingLocalContacts.size() > 0) {
-					//Create a notification that can launch an activity to resolve the pending conflict
+					//Create a notification that can launch an mActivity to resolve the pending conflict
 					NotificationManager nm = (NotificationManager) mContext
 							.getSystemService(Context.NOTIFICATION_SERVICE);
 					Notification notify = new Notification(R.drawable.icon, mContext.getString(R.string.notify_sync_conflict_ticket), System
 							.currentTimeMillis());
 					Intent intent = new Intent(mContext, SweetConflictResolveActivity.class);
+					intent.putExtra("account", account);
 					SweetConflictResolveActivity.storeConflicts(conflictingLocalContacts, conflictingSugarContacts);
 					
 					notify.setLatestEventInfo(
