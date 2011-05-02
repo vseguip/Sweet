@@ -22,11 +22,35 @@ package com.github.vseguip.sweet.rest;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.text.TextUtils;
+
 import com.github.vseguip.sweet.contacts.ISweetContact;
 
 public class SweetContact implements ISweetContact {
 
 	Map<String, String> mValues;
+
+	public SweetContact(SweetContact c) {
+		mValues = new HashMap<String, String>(c.mValues);
+	}
+
+	public ISweetContact deepCopy() {
+		return new SweetContact(this);		
+	}
+	public ISweetContact mergeContact(ISweetContact c) {
+		SweetContact merged = new SweetContact(this);
+
+		if (c != null) {
+			for (String fieldId : mValues.keySet()) {
+				String thisVal = merged.get(fieldId);
+				String otherVal = c.get(fieldId);
+				if(TextUtils.isEmpty(thisVal) && !TextUtils.isEmpty(otherVal)){
+					merged.set(fieldId, otherVal);
+				}
+			}
+		}
+		return merged;
+	}
 
 	public SweetContact() {
 		super();
@@ -204,12 +228,12 @@ public class SweetContact implements ISweetContact {
 	}
 
 	@Override
-	public String getPostalCode() {		
+	public String getPostalCode() {
 		return mValues.get(POSTAL_CODE_KEY);
 	}
 
 	@Override
-	public String getRegion() { 
+	public String getRegion() {
 		return mValues.get(STATE_KEY);
 	}
 
@@ -219,33 +243,33 @@ public class SweetContact implements ISweetContact {
 	}
 
 	@Override
-	public void setCity(String city) {		// 
+	public void setCity(String city) { // 
 		mValues.put(CITY_KEY, city);
-	
+
 	}
 
 	@Override
 	public void setCountry(String country) {
-	mValues.put(COUNTRY_KEY, country);
-		
+		mValues.put(COUNTRY_KEY, country);
+
 	}
 
 	@Override
 	public void setPostalCode(String postalCode) {
 		mValues.put(POSTAL_CODE_KEY, postalCode);
-		
+
 	}
 
 	@Override
 	public void setRegion(String region) {
 		mValues.put(STATE_KEY, region);
-		
+
 	}
 
 	@Override
 	public void setStreet(String street) {
 		mValues.put(STREET_KEY, street);
-		
+
 	}
 
 	@Override
@@ -275,6 +299,6 @@ public class SweetContact implements ISweetContact {
 
 	@Override
 	public String getDisplayName() {
-		return getFirstName() +  " " + getLastName();
+		return getFirstName() + " " + getLastName();
 	}
 }

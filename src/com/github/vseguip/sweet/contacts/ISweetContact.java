@@ -110,4 +110,8 @@ public interface ISweetContact {
 	public void set(String field, String value);
 
 	public String getDisplayName();
+
+	ISweetContact mergeContact(ISweetContact c);
+
+	public ISweetContact deepCopy();
 }
