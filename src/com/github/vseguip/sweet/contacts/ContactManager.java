@@ -113,8 +113,8 @@ public class ContactManager {
 
 	public static int syncContacts(Context context, Account acc, List<ISweetContact> contacts) {
 		Log.i(TAG, "syncContacts()");
-		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 		getAccountType(context);
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();		
 		ContentResolver resolver = context.getContentResolver();
 		Log.i(TAG, "Starting to sync locally");
 		// int i = 0;
@@ -460,7 +460,7 @@ public class ContactManager {
 			values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
 			builder.withValues(values);
 			ops.add(builder.build());
-		}
+		} 
 		updateContactData(resolver, ops, contact, values, rawId, sync);
 	}
 
