@@ -9,13 +9,34 @@
 		<LinearLayout android:layout_width="fill_parent"
 			android:layout_height="fill_parent" android:baselineAligned="false"
 			android:orientation="vertical">
-			<LinearLayout style="@style/textSubtitle" android:layout_height="wrap_content"
-			android:orientation="vertical" android:paddingLeft="0sp">
-			
-				<TextView android:text="@string/resolve_conflict" style="@style/textSubtitle" android:id="@+id/textConflictName" />
-				<TextView android:text="@string/conflict_choose_field"
-					style="@style/textSubtitle" android:textSize="14sp"
-								android:singleLine="false" />
+
+			<LinearLayout style="@style/textSubtitle"
+				android:layout_height="wrap_content"
+				android:layout_width="fill_parent"  
+				android:orientation="horizontal"
+				android:paddingLeft="0sp">
+				<Button android:text="" android:layout_width="fill_parent"
+					android:layout_weight="2"
+					android:width="0sp" 
+					android:drawableLeft="@android:drawable/ic_media_previous"
+					android:layout_height="wrap_content" android:id="@+id/buttonPreviousConflict"/>
+				<LinearLayout android:layout_height="wrap_content"
+					android:width="0sp"
+					android:layout_weight="0.75" 
+					android:layout_width="fill_parent" android:orientation="vertical"
+					android:paddingLeft="0sp">
+
+					<TextView android:text="@string/resolve_conflict" style="@style/textSubtitle"
+						android:id="@+id/textConflictName" />
+					<TextView android:text="@string/conflict_choose_field"
+						style="@style/textSubtitle" android:textSize="14sp"
+						android:singleLine="false" />
+				</LinearLayout>
+				<Button android:text="" android:layout_width="fill_parent"
+					android:width="0sp"
+					android:drawableRight="@android:drawable/ic_media_next"
+					android:layout_height="wrap_content"
+					android:layout_weight="2" android:id="@+id/buttonNextConflict"/>
 			</LinearLayout>
 
 			<TableLayout style="@style/infoBox" stretch_columns="0,1"
@@ -24,6 +45,7 @@
 			</TableLayout>
 
 		</LinearLayout>
+
 
 	</ScrollView>
 	<LinearLayout android:layout_width="fill_parent"
