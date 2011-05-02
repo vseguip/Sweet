@@ -584,8 +584,13 @@ public class ContactManager {
 					ContentProviderOperation.Builder builder = getDataInsertBuilder();
 					if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 						if (values.size() > 0) {
-							values.put(Data.RAW_CONTACT_ID, rawId);
+							values.put(Data.RAW_CONTACT_ID, rawId);						
 							values.put(Data.SYNC1, field);// insert wich field generated
+							builder.withValues(values);
+							ops.add(builder.build());
+							values.clear();
+							builder = getRawContactUpdateBuilder(rawId);
+							values.put(RawContacts.DIRTY, 1);
 							builder.withValues(values);
 							ops.add(builder.build());
 						}
