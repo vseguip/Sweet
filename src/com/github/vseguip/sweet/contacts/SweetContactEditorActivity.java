@@ -20,11 +20,18 @@ If not, see http://www.gnu.org/licenses/.
 package com.github.vseguip.sweet.contacts;
 
 import com.github.vseguip.sweet.R;
+import com.github.vseguip.sweet.rest.SweetContact;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -35,6 +42,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SweetContactEditorActivity extends Activity {
 	private static final String TAG = "SweetContactEditorActivity";
@@ -54,11 +62,14 @@ public class SweetContactEditorActivity extends Activity {
 	private TextView mEmail1;
 	private ISweetContact mContact;
 	private Button mSaveButton;
-
+	private boolean mForceCreate;
+	private Account mAccount;
+	private Uri mContactUri;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.i(TAG, "onCreate()");
+		
 		getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.contact_editor);
 		mContact = null;
@@ -126,16 +137,60 @@ public class SweetContactEditorActivity extends Activity {
 			public void afterTextChanged(Editable s) {
 			}
 		});
-
 		Intent intent = getIntent();
-		if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-			Uri entityUri = intent.getData();
-
-			mContact = ContactManager.getContactFromMime(this, entityUri);
+		String action = intent.getAction();
+		
+		if(ContactsContract.Intents.Insert.ACTION.equals(action)){
+			
+			AccountManager am = AccountManager.get(this);
+			Account[] accounts = am.getAccountsByType(getString(R.string.account_type));
+			if(accounts==null || accounts.length==0){
+				//no matching account type, quit
+				Toast.makeText(this, R.string.error_no_account, Toast.LENGTH_LONG).show();				
+				finish();
+				return;
+			}
+			mAccount = accounts[0];
+			if(accounts.length > 1){
+				pickAccount(accounts);
+			}
+			mContactUri = null;
+			mForceCreate=true;
+			mContact = new SweetContact();
+			displayContactData();
+		}
+		else if (Intent.ACTION_VIEW.equals(action)) {
+			mContactUri = intent.getData();
+			mAccount = null;		
+			mContact = ContactManager.getContactFromMime(this, mContactUri);
+			mForceCreate=false;
 			displayContactData();
 
 		}
 
+	}
+
+	private Account pickAccount(final Account[] accounts) {
+		String accountNames[] = new String[accounts.length]; 
+		for (int i = 0; i < accountNames.length; i++) {
+			accountNames[i] = accounts[i].name;
+		}
+		AlertDialog dialog = new AlertDialog.Builder(this).setItems(accountNames, new DialogInterface.OnClickListener() {			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				mAccount = accounts[which];				
+			}
+		}).setTitle(R.string.choose_account).setOnCancelListener(new OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				SweetContactEditorActivity.this.finish();
+				
+			}
+		}).create();
+		dialog.show();
+		
+		return mAccount;
 	}
 
 	/**
@@ -186,7 +241,7 @@ public class SweetContactEditorActivity extends Activity {
 	private void saveContact() {
 		if (mContact != null) {
 			getContactData();//retrieve data from fields
-			ContactManager.saveOrUpdateContact(this, mContact);
+			ContactManager.createOrUpdateContact(this, mContact, mAccount, mContactUri, mForceCreate);
 		}
 		finish();
 	}

@@ -95,6 +95,12 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		mButtonCreate = (Button) findViewById(R.id.buttonCreate);
 		mTextAction = (TextView) findViewById(R.id.textViewCreate);
 		if (mCreateAccount) {
+			Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+			if((accounts!=null) && (accounts.length > 0)){
+				Toast.makeText(this, R.string.only_one_account,Toast.LENGTH_LONG).show();
+				finish();
+				return;
+			}
 			mTextAction.setText(R.string.activity_create);
 		} else {
 			mTextAction.setText(R.string.activity_check_update);

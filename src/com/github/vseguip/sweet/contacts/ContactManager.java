@@ -85,7 +85,7 @@ public class ContactManager {
 				Phone.TYPE_FAX_WORK, StructuredPostal.TYPE_WORK };
 		private static String[][] EXTRA_KEYS = {
 				{ StructuredName.FAMILY_NAME },
-				{ Organization.TITLE, Organization.SYNC2 },				
+				{ Organization.TITLE, Organization.SYNC2 },
 				null,
 				null,
 				null,
@@ -114,7 +114,7 @@ public class ContactManager {
 	public static int syncContacts(Context context, Account acc, List<ISweetContact> contacts) {
 		Log.i(TAG, "syncContacts()");
 		getAccountType(context);
-		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();		
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 		ContentResolver resolver = context.getContentResolver();
 		Log.i(TAG, "Starting to sync locally");
 		// int i = 0;
@@ -160,7 +160,8 @@ public class ContactManager {
 		String query_args[] = new String[] { getAccountType(context), account.name };
 		List<ISweetContact> contacts = new ArrayList<ISweetContact>();
 		ContentResolver res = context.getContentResolver();
-		Cursor c = res.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID, RawContacts.SOURCE_ID, ContactFields.MODIFIED_DATE_COLUMN}, DIRTY_CONTACT_QUERY, query_args, null);
+		Cursor c = res.query(RawContacts.CONTENT_URI, new String[] { RawContacts._ID, RawContacts.SOURCE_ID,
+				ContactFields.MODIFIED_DATE_COLUMN }, DIRTY_CONTACT_QUERY, query_args, null);
 		try {
 			if (c.moveToFirst()) {
 				while (!c.isAfterLast()) {
@@ -213,7 +214,8 @@ public class ContactManager {
 					if (contact.getId() == null) {// this should always be
 						// null!!
 						contact.setId(Long.toString(rawId));
-						if ((contact.getFirstName() == null) || (contact.getLastName() == null) || (!hasSugarProfileEntry(res, rawId))) {
+						if ((contact.getFirstName() == null) || (contact.getLastName() == null)
+								|| (!hasSugarProfileEntry(res, rawId))) {
 							// this happens because we added the contact with
 							// the
 							// default android contact app that does not set the
@@ -380,31 +382,48 @@ public class ContactManager {
 		return 0;
 	}
 
-	public static void saveOrUpdateContact(Context context, ISweetContact contact) {
+	/**
+	 * Save or update
+	 * 
+	 * @param context
+	 * @param contact
+	 * @param account
+	 * @param create
+	 */
+	public static void createOrUpdateContact(Context context, ISweetContact contact, Account account, Uri entityUri,
+			boolean create) {
 		getAccountType(context);
+		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 		if (contact == null)
 			return;
 		ContentResolver resolver = context.getContentResolver();
-		if (contact.getId() == null) {// new Contact (not from SugarCRM), save
-			// it
-
+		if (create) {// new Contact (not from SugarCRM), save
+			addContact(resolver, ops, account.name, contact);
 		} else {// update contact in database
-			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 			long rawId = findLocalContact(resolver, contact.getId());
+			if (rawId == 0) {
+				// This means the contact has not yet been synced.
+				// In such a case entityUri should
+				// not be null (this is usually called by the
+				// SweetContactEditorActivity) and should point to the raw contact.
+				if (entityUri != null) {
+					rawId = getRawContactIdFromData(resolver, entityUri);
+				}
+			}
 			if (rawId != 0) {
 				updateContact(resolver, ops, contact, rawId, false);
-				try {
-					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
-				} catch (RemoteException e) {
-					Log.e(TAG, "Error saving contact " + e.getMessage());
-					e.printStackTrace();
-				} catch (OperationApplicationException e) {
-					Log.e(TAG, "Error saving contact " + e.getMessage());
-					e.printStackTrace();
-				}
-
 			}
 		}
+		try {
+			resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+		} catch (RemoteException e) {
+			Log.e(TAG, "Error saving contact " + e.getMessage());
+			e.printStackTrace();
+		} catch (OperationApplicationException e) {
+			Log.e(TAG, "Error saving contact " + e.getMessage());
+			e.printStackTrace();
+		}
+
 	}
 
 	/**
@@ -427,17 +446,24 @@ public class ContactManager {
 		values.put(RawContacts.ACCOUNT_NAME, accountName);
 		values.put(RawContacts.ACCOUNT_TYPE, getAccountType());
 		values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
-
 		builder.withValues(values);
 		ops.add(builder.build());
 		builder = getDataInsertBuilder();
 		builder.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, reference);
+		buildMimeData(accountName, builder);
+		ops.add(builder.build());
+		addContactData(ops, contact, values, reference);
+	}
+
+	/**
+	 * @param accountName
+	 * @param builder
+	 */
+	private static void buildMimeData(String accountName, ContentProviderOperation.Builder builder) {
 		builder.withValue(ContactsContract.Data.MIMETYPE, "vnd.android.cursor.item/vnd.sweet.github.com.profile");
 		builder.withValue(ContactsContract.Data.DATA1, accountName);
 		builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
 		builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
-		ops.add(builder.build());
-		addContactData(ops, contact, values, reference);
 	}
 
 	/**
@@ -454,13 +480,14 @@ public class ContactManager {
 			ISweetContact contact, long rawId, boolean sync) {
 		ContentValues values = new ContentValues();
 		if (sync) {
-			// Reset the dirty flag for this contact if we are syncing and update modified time
+			// Reset the dirty flag for this contact if we are syncing and
+			// update modified time
 			ContentProviderOperation.Builder builder = getRawContactUpdateBuilder(rawId);
 			values.put(RawContacts.DIRTY, 0);
 			values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
 			builder.withValues(values);
 			ops.add(builder.build());
-		} 
+		}
 		updateContactData(resolver, ops, contact, values, rawId, sync);
 	}
 
@@ -568,7 +595,8 @@ public class ContactManager {
 				if (dataId != 0) { // if the row exists, update it
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
-						values.put(Data.SYNC1, field);// insert wich field generated
+						values.put(Data.SYNC1, field);// insert wich field
+						// generated
 						sb_query.append(" OR (").append(Data.SYNC1).append(" <> ?)");
 						sb_query_params.add(field);
 						builder.withValues(values);
@@ -584,8 +612,9 @@ public class ContactManager {
 					ContentProviderOperation.Builder builder = getDataInsertBuilder();
 					if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
 						if (values.size() > 0) {
-							values.put(Data.RAW_CONTACT_ID, rawId);						
-							values.put(Data.SYNC1, field);// insert wich field generated
+							values.put(Data.RAW_CONTACT_ID, rawId);
+							values.put(Data.SYNC1, field);// insert wich field
+							// generated
 							builder.withValues(values);
 							ops.add(builder.build());
 							values.clear();
@@ -624,7 +653,7 @@ public class ContactManager {
 		if (rawId != 0) {
 			contact = new SweetContact();
 			getContactData(res, rawId, contact);
-			
+
 		}
 		return contact;
 	}

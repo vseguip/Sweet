@@ -41,14 +41,15 @@ sync the following fields:
 - Primary email
 - Primary postal address
 
-Sweet supports editing contacts offline in your phone and uploading
-them to the SugarCRM at a later time. In case of a conflict it will
-present you with a UI showing the differences so you can resolve them
-and save the changes in the server and the phone. Due to limitations
-in stock the Android contact editor a custom interface is provided to
-edit contacts. In order to show this interface one must press the
-SugarCRM profile entry in the contact detailed view. Using the contact
-editor will not work.
+
+Sweet features editing contacts offline in your phone and uploading
+them to the SugarCRM at a later time works. In case of a conflict it
+will present you with a UI showing the differences so you can resolve
+them and save the changes in the server and the phone. Due to
+limitations in stock the Android contact editor a custom interface is
+provided to edit contacts. In order to show this interface one must
+press the SugarCRM profile entry in the contact detailed view, using
+the contact editor will not work.
 
 Adding contacts in the phone is also supported and will be accordingly
 uploaded to the server. As of now this is a little bit cumbersome: one
@@ -57,34 +58,52 @@ will only allow you to put the first and last name. After doing this
 you need to perform a sync which will add the needed profile entry to
 the contact. You can the proceed as usual. 
 
+
+Known limitations and bugs
+--------------------------
+- Doesn't support SSL.
+- Only one SugarCRM account in your phone.
+- Limited and fixed number of contact fields.
+- Has bugs
+
+
 TODO
 ----
 - Bug fixing
-- Intercept when the user is creating contacts and present our UI
 - Decide what to do with deleted contacts. Right now nothing is done
-- Accept SSL certificates from the server.
-
-
+- Implement SSL
+- Allow multiple accounts
+- Revisit how manym, which fields are allowed and how the map to SugarCRM.
 
 
 FAQ
 ----
 
 Q: How do I download Sweet?
+
 A: Sweet is available in the Android Market place. 
 
+
 Q: Can I edit contacts offline?  
+
 A: Yes, you can edit offline contacts in your phone and the changes will be synced.
 
+
 Q: What version of SugarCRM does Sweet support?
+
 A: Sweet has been tested with SugarCRM 6.1 but should work with any version supporting v2 of the REST API.
 
+
 Q: What version of Android does Sweet support?
+
 A: Sweet has been tested with 2.1, 2.2 and 2.3. It will not work with earlier version due to changes in the Contacts API.
 
 
 Q: I have a bug where can I report it?
+
 A: Sweet development is going on at [Github](https://github.com/vseguip/Sweet). You can send bug reports to https://github.com/vseguip/Sweet/issues.
 
+
 Q: I have a patch where can I send it?
+
 A: Right now I'm not accepting patches since the project is done as part of my final career project. 

@@ -32,7 +32,10 @@
 	<string name="postalCode">Postal code</string>
 	<string name="state">Region</string>
 	<string name="country">Country</string>
+	<string name="choose_account">Choose Sweet account to create the contact</string>
+	<string name="error_no_account">Please create a Sweet account before adding contacts of this kind.</string>
 	<!-- End contact editor activity -->
+	<string name="only_one_account">You already have one Sweet account. Sweet does not support multiple accounts.</string>
 	<string name="validationOk">Your account settings have been validated
 		successfully. Press the create button to create your account.</string>
 
