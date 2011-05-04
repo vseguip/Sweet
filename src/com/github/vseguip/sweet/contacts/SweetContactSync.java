@@ -201,8 +201,15 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 					IOException, AuthenticationException {
 				Log.i(TAG, "Running PerformSync closure()");
 				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
+				try {
 				mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
-
+				} catch (Exception ex){
+					ex.printStackTrace();
+				}
+				//try again, it could be due to an invalid session
+				if(mAuthToken==null){
+					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
+				}
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
 
 				String lastDate = mAccountManager.getUserData(account, LAST_SYNC_KEY);
