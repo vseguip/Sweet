@@ -36,7 +36,7 @@
 
 				<CheckBox android:text="@+string/acceptcerts" android:id="@+id/CheckAcceptCerts"
 					android:textAppearance="?android:attr/textAppearanceLarge"
-					android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+					android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone"></CheckBox>
 
 			</LinearLayout>
 			<LinearLayout android:layout_width="wrap_content"
