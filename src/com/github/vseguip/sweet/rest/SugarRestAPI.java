@@ -265,10 +265,8 @@ public class SugarRestAPI implements SugarAPI {
 								getSugarValue(entrada, SUGARCRM_PHONE_MOBILE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_FAX_WORK_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_STREET_FIELD, ""),
-								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), getSugarValue(
-																								entrada,
-																								SUGARCRM_STATE_FIELD,
-																								""),
+								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), 
+								getSugarValue(entrada, SUGARCRM_STATE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_POSTAL_CODE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_COUNTRY_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_DATE_MODIFIED_FIELD, "")));
@@ -327,8 +325,9 @@ public class SugarRestAPI implements SugarAPI {
 				setJsonFieldEntry(jsonContactArray, SUGARCRM_FAX_WORK_FIELD, c.getWorkFax());
 				setJsonFieldEntry(jsonContactArray, SUGARCRM_STREET_FIELD, c.getStreet());
 				setJsonFieldEntry(jsonContactArray, SUGARCRM_CITY_FIELD, c.getCity());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_STATE_FIELD, c.getCountry());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_STATE_FIELD, c.getRegion());
 				setJsonFieldEntry(jsonContactArray, SUGARCRM_POSTAL_CODE_FIELD, c.getPostalCode());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_COUNTRY_FIELD, c.getCountry());
 				setJsonFieldEntry(jsonContactArray, SUGARCRM_DATE_MODIFIED_FIELD, c.getDateModified());
 				jsonContactList.put(jsonContactArray);
 			} catch (JSONException e) {
