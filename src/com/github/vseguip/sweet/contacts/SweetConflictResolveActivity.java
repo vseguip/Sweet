@@ -110,7 +110,7 @@ public class SweetConflictResolveActivity extends Activity {
 
 	public static synchronized void retreiveConflicts(Map<String, ISweetContact> localContacts,
 			Map<String, ISweetContact> sugarContacts) {
-		
+
 		localContacts.putAll(conflictingLocalContacts);
 		sugarContacts.putAll(conflictingSugarContacts);
 
@@ -126,8 +126,8 @@ public class SweetConflictResolveActivity extends Activity {
 		final Map<String, ISweetContact> localContacts = new HashMap<String, ISweetContact>();
 		final Map<String, ISweetContact> sugarContacts = new HashMap<String, ISweetContact>();
 		try {
-		retreiveConflicts(localContacts, sugarContacts);
-		} catch(Exception ex) {
+			retreiveConflicts(localContacts, sugarContacts);
+		} catch (Exception ex) {
 			Log.e(TAG, "This shouldn't happen " + ex.getMessage());
 			ex.printStackTrace();
 			quitResolver();
@@ -140,16 +140,15 @@ public class SweetConflictResolveActivity extends Activity {
 		mAccount = getIntent().getParcelableExtra("account");
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 		mPreferServer = settings.getBoolean(this.getString(R.string.prefer_server_resolve), false);
-		
-		task = (SyncResolvedContactsTask) getLastNonConfigurationInstance();
 
+		task = (SyncResolvedContactsTask) getLastNonConfigurationInstance();
+		
 		if (task == null) {
-			task = new SyncResolvedContactsTask(this, mAccountManager, mAccount, getString(R.string.account_type));			
+			task = new SyncResolvedContactsTask(this, mAccountManager, mAccount, getString(R.string.account_type));
 		} else {
 			task.attach(this);
 		}
 
-		
 		buttonCancel.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -263,7 +262,8 @@ public class SweetConflictResolveActivity extends Activity {
 	/**
 	 * 
 	 */
-	private void quitResolver() {
+	private void quitResolver() {	
+		task.cancel(true);
 		NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		nm.cancel(NOTIFY_CONFLICT, NOTIFY_CONTACT);
 		finish();
@@ -362,7 +362,12 @@ public class SweetConflictResolveActivity extends Activity {
 		}
 
 		if (contacts.size() > 0) {
-			task.execute(contacts);
+			if (task.getStatus() != AsyncTask.Status.PENDING) {
+				task.execute(contacts);
+			} else {
+				task = new SyncResolvedContactsTask(this, mAccountManager, mAccount, getString(R.string.account_type));
+				task.execute(contacts);
+			}
 		}
 	}
 

@@ -53,7 +53,7 @@
 	<string name="full_sync_summary">Check this option to perform a full sync every time
 		the account tries to sync with the SugarCRM server</string>
 	<string name="full_sync_title">Perform full sync</string>
-
+ 
 	<string name="sync_version">0.1</string>
 	<string name="succesful_authentication">Account succesfully authenticated. Try to sync
 		again if there were any problems in your last attempt</string>
@@ -66,6 +66,7 @@
 	<string name="server_resolve_summary">Use server data when there is a conflict between
 		locally modified contacts and server modified contacts</string>
 	<!--  UI for conflict resolving -->
+
 	<string name="notify_sync_conflict_message">Press to resolve conflicts when syncing to
 		SugarCRM.</string>
 	<string name="notify_sync_conflict_title">Pending conflicts.</string>
@@ -81,6 +82,7 @@
 		manually if needed.</string>
 	<string name="conflict_error">An error ocurred while trying to sync the resolved
 		conflicts. Try again to sync manually if needed.</string>
+<string name="pendent_resolve">Resolve operation pending. Please wait.</string>
 	<!--   -->
 	<!-- CONSTANTS FOR AUTHORITY AND ACCOUNT TYPE -->
 	<string name="account_type">com.github.vseguip.sweet.account</string>
