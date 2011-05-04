@@ -50,6 +50,7 @@ import android.util.Log;
 
 public class ContactManager {
 	private static final String TAG = "ContactManager";
+	private static final String ACCOUNT_VERSION = "0.1";
 	private static String ACCOUNT_TYPE;
 	private static final String[] RAW_CONTACT_ID_PROJECTION = { RawContacts._ID };
 	private static String SOURCE_ID_QUERY = RawContacts.ACCOUNT_TYPE + "=? AND " + RawContacts.SOURCE_ID + "=?";
@@ -68,6 +69,7 @@ public class ContactManager {
 
 	private static class ContactFields {
 		private static String MODIFIED_DATE_COLUMN = RawContacts.SYNC2;
+		private static String VERSION_COLUMN = RawContacts.SYNC3;
 		private static String[] FIELDS = { ISweetContact.FIRST_NAME_KEY, ISweetContact.ACCOUNT_NAME_KEY,
 				ISweetContact.EMAIL1_KEY, ISweetContact.WORK_PHONE_KEY, ISweetContact.MOBILE_PHONE_KEY,
 				ISweetContact.WORK_FAX_KEY, ISweetContact.CITY_KEY };
@@ -443,6 +445,7 @@ public class ContactManager {
 		values.put(RawContacts.SOURCE_ID, contact.getId());
 		values.put(RawContacts.ACCOUNT_NAME, accountName);
 		values.put(RawContacts.ACCOUNT_TYPE, getAccountType());
+		values.put(ContactFields.VERSION_COLUMN, ACCOUNT_VERSION);
 		values.put(ContactFields.MODIFIED_DATE_COLUMN, contact.getDateModified());
 		builder.withValues(values);
 		ops.add(builder.build());

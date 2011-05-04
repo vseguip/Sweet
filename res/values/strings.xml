@@ -54,7 +54,7 @@
 		the account tries to sync with the SugarCRM server</string>
 	<string name="full_sync_title">Perform full sync</string>
 
-	<string name="sync_version">1.0</string>
+	<string name="sync_version">0.1</string>
 	<string name="succesful_authentication">Account succesfully authenticated. Try to sync
 		again if there were any problems in your last attempt</string>
 	<string name="activity_create">Enter your new account settings</string>
