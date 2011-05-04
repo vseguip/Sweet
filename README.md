@@ -24,8 +24,8 @@ Disclaimer
 ---------- 
 
 Sweet right now is alpha software. It can delete your contacts or mix
-them up. As of now, use in production servers is discouraged. You are
-warned
+them up. As of now, use in production servers and/or phones is discouraged. 
+You are *warned*
 
 
 Description
@@ -53,7 +53,7 @@ the contact editor will not work.
 
 Adding contacts in the phone is also supported and will be accordingly
 uploaded to the server. As of now this is a little bit cumbersome: one
-must first add a contact to this acccount. The stock android editor
+must first add a contact to this account. The stock android editor
 will only allow you to put the first and last name. After doing this
 you need to perform a sync which will add the needed profile entry to
 the contact. You can the proceed as usual. 
