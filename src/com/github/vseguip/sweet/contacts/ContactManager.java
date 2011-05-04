@@ -253,20 +253,17 @@ public class ContactManager {
 
 		long rawId = Long.parseLong(contact.getId());
 		try {
+
 			ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 			// Fix adding profile entry
 			ContentProviderOperation.Builder builder;
 			if (!hasSugarProfileEntry(res, rawId)) {
-				builder = getDataInsertBuilder();
-				builder.withValue(ContactsContract.Data.RAW_CONTACT_ID, rawId);
-				builder.withValue(
-									ContactsContract.Data.MIMETYPE,
-									"vnd.android.cursor.item/vnd.sweet.github.com.profile");
-				if (account != null)
-					builder.withValue(ContactsContract.Data.DATA1, account.name);
-				builder.withValue(ContactsContract.Data.DATA2, "SugarCRM Profile");
-				builder.withValue(ContactsContract.Data.DATA3, "Edit contact info");
-				ops.add(builder.build());
+				if (rawId != 0) {
+					builder = getDataInsertBuilder();
+					buildMimeData(account.name, builder);
+					builder.withValue(Data.RAW_CONTACT_ID, rawId);
+					ops.add(builder.build());
+				}
 			}
 			// Attempt to fix name entry
 			long nameDataID = findNameDateId(res, rawId, contact);
@@ -405,7 +402,8 @@ public class ContactManager {
 				// This means the contact has not yet been synced.
 				// In such a case entityUri should
 				// not be null (this is usually called by the
-				// SweetContactEditorActivity) and should point to the raw contact.
+				// SweetContactEditorActivity) and should point to the raw
+				// contact.
 				if (entityUri != null) {
 					rawId = getRawContactIdFromData(resolver, entityUri);
 				}
