@@ -114,4 +114,6 @@ public interface ISweetContact {
 	ISweetContact mergeContact(ISweetContact c);
 
 	public ISweetContact deepCopy();
+	
+	public boolean equalUIFields(ISweetContact c);
 }

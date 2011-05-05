@@ -35,8 +35,9 @@ public class SweetContact implements ISweetContact {
 	}
 
 	public ISweetContact deepCopy() {
-		return new SweetContact(this);		
+		return new SweetContact(this);
 	}
+
 	public ISweetContact mergeContact(ISweetContact c) {
 		SweetContact merged = new SweetContact(this);
 
@@ -44,7 +45,7 @@ public class SweetContact implements ISweetContact {
 			for (String fieldId : mValues.keySet()) {
 				String thisVal = merged.get(fieldId);
 				String otherVal = c.get(fieldId);
-				if(TextUtils.isEmpty(thisVal) && !TextUtils.isEmpty(otherVal)){
+				if (TextUtils.isEmpty(thisVal) && !TextUtils.isEmpty(otherVal)) {
 					merged.set(fieldId, otherVal);
 				}
 			}
@@ -300,5 +301,14 @@ public class SweetContact implements ISweetContact {
 	@Override
 	public String getDisplayName() {
 		return getFirstName() + " " + getLastName();
+	}
+
+	@Override
+	public boolean equalUIFields(ISweetContact c) {
+		for (String field : ISweetContact.COMPARISON_FIELDS) {
+			if (!this.get(field).equals(c.get(field)))
+				return false;
+		}
+		return true;
 	}
 }
