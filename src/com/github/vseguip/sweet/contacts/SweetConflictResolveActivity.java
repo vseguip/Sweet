@@ -40,6 +40,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -75,7 +76,7 @@ public class SweetConflictResolveActivity extends Activity {
 	private Account mAccount;
 	private ArrayList<String> mConflictSet;
 	private AccountManager mAccountManager;
-	private boolean mPreferServer;
+	private boolean mPreferServer;	
 	private SyncResolvedContactsTask task = null;
 
 	/**
@@ -122,7 +123,7 @@ public class SweetConflictResolveActivity extends Activity {
 		Log.i(TAG, "onCreate()");
 		// getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.conflict_resolver);
-		mAccountManager = AccountManager.get(this);
+		mAccountManager = AccountManager.get(this);		
 		final Map<String, ISweetContact> localContacts = new HashMap<String, ISweetContact>();
 		final Map<String, ISweetContact> sugarContacts = new HashMap<String, ISweetContact>();
 		try {
@@ -132,7 +133,7 @@ public class SweetConflictResolveActivity extends Activity {
 			ex.printStackTrace();
 			quitResolver();
 		}
-		final TableLayout fieldTable = (TableLayout) findViewById(R.id.fieldTable);
+		final TableLayout fieldTable = (TableLayout) findViewById(R.id.fieldTable);		
 		mButtonPrevConflict = (Button) findViewById(R.id.buttonPreviousConflict);
 		mButtonNextConflict = (Button) findViewById(R.id.buttonNextConflict);
 		Button buttonCancel = (Button) findViewById(R.id.buttonCancel);
@@ -362,10 +363,11 @@ public class SweetConflictResolveActivity extends Activity {
 		}
 
 		if (contacts.size() > 0) {
-			if (task.getStatus() != AsyncTask.Status.PENDING) {
+			if (task.getStatus() == AsyncTask.Status.PENDING) {
 				task.execute(contacts);
 			} else {
 				task = new SyncResolvedContactsTask(this, mAccountManager, mAccount, getString(R.string.account_type));
+				task.attach(this);
 				task.execute(contacts);
 			}
 		}
@@ -383,6 +385,7 @@ public class SweetConflictResolveActivity extends Activity {
 		AccountManager mAccountManager;
 		Account mAccount;
 		private String mAccountType;
+		private ProgressDialog mDialog;
 
 		public SyncResolvedContactsTask(SweetConflictResolveActivity activity, AccountManager accountManager,
 				Account account, String accountType) {
@@ -392,16 +395,30 @@ public class SweetConflictResolveActivity extends Activity {
 			mAccountType = accountType;
 		}
 
+		@Override
+		protected void onPreExecute() {
+			if(mActivity!=null){
+				mDialog = new ProgressDialog(mActivity, 0);
+				mDialog.setTitle(R.string.pendent_resolve);
+				mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+				mDialog.show();
+				mDialog.setProgress(0);
+				
+			}
+		}
 		protected Long doInBackground(List<ISweetContact>... contactsA) {
 			Long result = 0L;
+			int progress = 0;
 			// Save locally
 			for (int i = 0; i < contactsA.length; i++) {
+				publishProgress(progress++);
 				List<ISweetContact> contacts = contactsA[i];
 				String lastDate = mAccountManager.getUserData(mAccount, SweetContactSync.LAST_SYNC_KEY);
 				String server = mAccountManager.getUserData(mAccount, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
 				Log.i(TAG, "Local update");
 				if (mActivity != null) {
 					ContactManager.syncContacts(mActivity, mAccount, contacts);
+					publishProgress(progress++);
 					Log.i(TAG, "Remote update");
 					for (ISweetContact c : contacts) {
 						String contactDate = c.getDateModified();
@@ -413,13 +430,16 @@ public class SweetConflictResolveActivity extends Activity {
 					SugarAPI sugar;
 					try {
 						sugar = SugarAPIFactory.getSugarAPI(server);
+						publishProgress(progress++);
 						String authToken = mAccountManager.blockingGetAuthToken(mAccount, mAccountType, true);
 						if (authToken == null) {
 							// Maybe session expired? retry...
 							authToken = mAccountManager.blockingGetAuthToken(mAccount, mAccountType, true);
 						}
+						publishProgress(progress++);
 						// Set false flag, don't create new users remotely!
 						List<String> newIds = sugar.sendNewContacts(authToken, contacts, false);
+						publishProgress(progress++);
 						result += (newIds.size() - contacts.size());
 						if (newIds.size() == contacts.size()) {
 							mAccountManager.setUserData(mAccount, SweetContactSync.LAST_SYNC_KEY, lastDate);
@@ -448,11 +468,16 @@ public class SweetConflictResolveActivity extends Activity {
 
 		@Override
 		protected void onProgressUpdate(Integer... progress) {
-
+			if(mDialog != null){
+				mDialog.setProgress(progress[0]);
+			}
 		}
 
 		@Override
 		protected void onPostExecute(Long result) {
+			if(mDialog != null){				
+				mDialog.dismiss();
+			}
 			if (mActivity != null) {
 				if (result == 0L) {
 					Toast.makeText(mActivity, R.string.conflict_resolved, Toast.LENGTH_LONG).show();

@@ -6,10 +6,11 @@
 	<ScrollView android:id="@+id/scrollView1"
 		android:layout_width="fill_parent" android:layout_height="0dip"
 		android:layout_weight="1">
+	
 		<LinearLayout android:layout_width="fill_parent"
 			android:layout_height="fill_parent" android:baselineAligned="false"
 			android:orientation="vertical">
-
+	
 			<LinearLayout style="@style/textSubtitle"
 				android:layout_height="wrap_content"
 				android:layout_width="fill_parent"  
@@ -31,7 +32,7 @@
 					<TextView android:text="@string/conflict_choose_field"
 						style="@style/textSubtitle" android:textSize="14sp"
 						android:singleLine="false" />
-				</LinearLayout>
+				</LinearLayout>	
 				<Button android:text="" android:layout_width="fill_parent"
 					android:width="0sp"
 					android:drawableRight="@android:drawable/ic_media_next"
