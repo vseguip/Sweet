@@ -7,11 +7,16 @@ import com.github.vseguip.sweet.rest.SugarAPIFactory;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.Groups;
+import android.provider.ContactsContract.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -96,8 +101,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		mTextAction = (TextView) findViewById(R.id.textViewCreate);
 		if (mCreateAccount) {
 			Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
-			if((accounts!=null) && (accounts.length > 0)){
-				Toast.makeText(this, R.string.only_one_account,Toast.LENGTH_LONG).show();
+			if ((accounts != null) && (accounts.length > 0)) {
+				Toast.makeText(this, R.string.only_one_account, Toast.LENGTH_LONG).show();
 				finish();
 				return;
 			}
@@ -203,6 +208,19 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 			mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
 			// Set contacts sync for this account.
 			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
+			ContentProviderClient client = getContentResolver()
+					.acquireContentProviderClient(ContactsContract.AUTHORITY_URI);
+			ContentValues values = new ContentValues();
+			values.put(ContactsContract.Groups.ACCOUNT_NAME, account.name);
+			values.put(Groups.ACCOUNT_TYPE, account.type);
+			values.put(Settings.UNGROUPED_VISIBLE, true);
+			try {
+				client.insert(Settings.CONTENT_URI.buildUpon()
+						.appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true").build(), values);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+
 		} else {
 			mAccountManager.setPassword(account, passwd);
 		}
