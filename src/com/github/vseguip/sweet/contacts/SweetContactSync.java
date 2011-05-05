@@ -202,12 +202,12 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				Log.i(TAG, "Running PerformSync closure()");
 				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
 				try {
-				mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
-				} catch (Exception ex){
+					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
+				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-				//try again, it could be due to an invalid session
-				if(mAuthToken==null){
+				// try again, it could be due to an invalid session
+				if (mAuthToken == null) {
 					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
 				}
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
@@ -264,20 +264,28 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 					} else {
 						Log.i(TAG, "Local contact differs from remote contact " + local.getFirstName() + " "
 								+ local.getLastName());
+						if (local.equalUIFields(remote)) {
+							// Differed in a non visible field like the account
+							// id or similar, use server version and resolve automatically
+							resolvedContacts.add(remote);
+							conflictingLocalContacts.remove(id);
+							conflictingSugarContacts.remove(id);
+						}
 					}
 
 				}
 				ContactManager.cleanDirtyFlag(mContext, resolvedContacts);
 				if (conflictingLocalContacts.size() > 0) {
-					//Create a notification that can launch an mActivity to resolve the pending conflict
+					// Create a notification that can launch an mActivity to
+					// resolve the pending conflict
 					NotificationManager nm = (NotificationManager) mContext
 							.getSystemService(Context.NOTIFICATION_SERVICE);
-					Notification notify = new Notification(R.drawable.icon, mContext.getString(R.string.notify_sync_conflict_ticket), System
-							.currentTimeMillis());
+					Notification notify = new Notification(R.drawable.icon, mContext
+							.getString(R.string.notify_sync_conflict_ticket), System.currentTimeMillis());
 					Intent intent = new Intent(mContext, SweetConflictResolveActivity.class);
 					intent.putExtra("account", account);
 					SweetConflictResolveActivity.storeConflicts(conflictingLocalContacts, conflictingSugarContacts);
-					
+
 					notify.setLatestEventInfo(
 												mContext,
 												mContext.getString(R.string.notify_sync_conflict_title),
@@ -287,7 +295,10 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 																			0,
 																			intent,
 																			PendingIntent.FLAG_CANCEL_CURRENT));
-					nm.notify(SweetConflictResolveActivity.NOTIFY_CONFLICT, SweetConflictResolveActivity.NOTIFY_CONTACT, notify);
+					nm.notify(
+								SweetConflictResolveActivity.NOTIFY_CONFLICT,
+								SweetConflictResolveActivity.NOTIFY_CONTACT,
+								notify);
 					throw new OperationCanceledException("Pending conflicts");
 				}
 				// Save the last sync time in the account if all went ok
