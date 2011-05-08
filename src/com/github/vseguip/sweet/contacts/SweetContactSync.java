@@ -201,19 +201,21 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 					IOException, AuthenticationException {
 				Log.i(TAG, "Running PerformSync closure()");
 				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
-				try {
-					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-				// try again, it could be due to an invalid session
-				if (mAuthToken == null) {
-					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
-				}
+				mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
-
 				String lastDate = mAccountManager.getUserData(account, LAST_SYNC_KEY);
-				List<ISweetContact> contacts = sugar.getNewerContacts(mAuthToken, lastDate);
+				List<ISweetContact> contacts=null;
+				try {
+					contacts = sugar.getNewerContacts(mAuthToken, lastDate);
+				} catch (AuthenticationException ex) {	
+					//maybe expired session, invalidate token and request new one
+					mAccountManager.invalidateAuthToken(account.type, AUTH_TOKEN_TYPE);
+					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
+				}
+				// try again, it could be due to an expired session
+				if(contacts==null){
+					contacts = sugar.getNewerContacts(mAuthToken, lastDate);
+				}
 				List<ISweetContact> modifiedContacts = ContactManager.getLocallyModifiedContacts(mContext, account);
 				List<ISweetContact> createdContacts = ContactManager.getLocallyCreatedContacts(mContext, account);
 				// Get latest date from server
@@ -266,7 +268,8 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 								+ local.getLastName());
 						if (local.equalUIFields(remote)) {
 							// Differed in a non visible field like the account
-							// id or similar, use server version and resolve automatically
+							// id or similar, use server version and resolve
+							// automatically
 							resolvedContacts.add(remote);
 							conflictingLocalContacts.remove(id);
 							conflictingSugarContacts.remove(id);
