@@ -33,10 +33,8 @@ import java.util.Set;
 import org.apache.http.auth.AuthenticationException;
 
 import com.github.vseguip.sweet.R;
-import com.github.vseguip.sweet.SweetAuthenticatorActivity;
 import com.github.vseguip.sweet.rest.SugarAPI;
 import com.github.vseguip.sweet.rest.SugarAPIFactory;
-import com.github.vseguip.sweet.utils.Utils;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
