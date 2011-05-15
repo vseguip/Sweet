@@ -69,7 +69,7 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 			final String password = options.getString(AccountManager.KEY_PASSWORD);
 			AccountManager am = AccountManager.get(mContext);
 			final String server = am.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
-			final boolean verified = validateUser(account.name, password, server);
+			final boolean verified = validateUser(am, account, password, server);
 			final Bundle result = new Bundle();
 			result.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, verified);
 			return result;
@@ -87,18 +87,18 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 		return bundle;
 	}
 
-	private boolean validateUser(String username, String passwd, String server) {
+	private boolean validateUser(AccountManager am, Account account, String passwd, String server) {
 		Log.i(TAG, "validateUser()");
-		return getServerAuthToken(username, passwd, server) == null;
+		return getServerAuthToken(am, account, passwd, server) == null;
 	}
 
-	private String getServerAuthToken(String username, String passwd, String server) {
+	private String getServerAuthToken(AccountManager am, Account account, String passwd, String server) {
 		Log.i(TAG, "onlineConfirmPassword()");
 		SugarAPI sugar;
 		String authToken = null;
 		try {
-			sugar = SugarAPIFactory.getSugarAPI(server);
-			authToken = sugar.getToken(username, passwd, null, null);
+			sugar = SugarAPIFactory.getSugarAPI(am, account);
+			authToken = sugar.getToken(account.name, passwd, null, null);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			Log.e(TAG, "Error URI is invalid " + server);
@@ -126,7 +126,7 @@ public class SweetAuthenticator extends AbstractAccountAuthenticator {
 		final String password = am.getPassword(account);
 		final String server = am.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
 		if ((password != null) || (server != null)) {
-			final String authToken = getServerAuthToken(account.name, password, server);
+			final String authToken = getServerAuthToken(am, account, password, server);
 			if (authToken != null) {
 				final Bundle result = new Bundle();
 				result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);

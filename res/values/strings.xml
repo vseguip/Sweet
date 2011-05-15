@@ -8,6 +8,7 @@
 	<string name="server">Server</string>
 	<string name="usessl">Use secure connection SSL</string>
 	<string name="acceptcerts">Accept any SSL certificate</string>
+	<string name="encryptpassword">Encrypt password</string>
 	<string name="cancel">Cancel</string>
 	<string name="validate">Validate</string>
 	<string name="back">Back</string>

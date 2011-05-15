@@ -36,6 +36,7 @@ import com.github.vseguip.sweet.R;
 import com.github.vseguip.sweet.SweetAuthenticatorActivity;
 import com.github.vseguip.sweet.rest.SugarAPI;
 import com.github.vseguip.sweet.rest.SugarAPIFactory;
+import com.github.vseguip.sweet.utils.Utils;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -176,8 +177,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);
 				// } else {
 				//					
-				// mAccountManager.confirmCredentials(mAccount, null, null,
-				// null, null);
+				//mAccountManager.confirmCredentials(mAccount, null, null, null, null);
 				// }
 				mSyncResult.stats.numAuthExceptions++;
 			}
@@ -200,9 +200,9 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 			public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException,
 					IOException, AuthenticationException {
 				Log.i(TAG, "Running PerformSync closure()");
-				String server = mAccountManager.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
+								
 				mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
-				SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
+				SugarAPI sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account);
 				String lastDate = mAccountManager.getUserData(account, LAST_SYNC_KEY);
 				List<ISweetContact> contacts=null;
 				try {
@@ -210,7 +210,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				} catch (AuthenticationException ex) {	
 					//maybe expired session, invalidate token and request new one
 					mAccountManager.invalidateAuthToken(account.type, AUTH_TOKEN_TYPE);
-					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
+					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, false);
 				}
 				// try again, it could be due to an expired session
 				if(contacts==null){

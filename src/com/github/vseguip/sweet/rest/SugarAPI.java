@@ -42,7 +42,7 @@ public interface SugarAPI {
 	 * 
 	 */
 
-	public abstract void setServer(String server) throws URISyntaxException;
+	public abstract void setServer(String server, boolean useSSL, boolean clearPassword) throws URISyntaxException;
 
 	/**
 	 * Login the SugarCRM and get an autorization token to be used in future

@@ -21,14 +21,32 @@ package com.github.vseguip.sweet.rest;
 
 import java.net.URISyntaxException;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+
+import com.github.vseguip.sweet.SweetAuthenticatorActivity;
+import com.github.vseguip.sweet.utils.Utils;
+
 public class SugarAPIFactory {
 	private static SugarRestAPI api;
 
-	public static synchronized SugarAPI getSugarAPI(String server) throws URISyntaxException {
+	public static synchronized SugarAPI getSugarAPI(AccountManager am, Account account) throws URISyntaxException {
+		final String server = am.getUserData(account, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
+		return getSugarAPI(am, account, server);
+		
+	}
+	public static synchronized SugarAPI getSugarAPI(AccountManager am, Account account, String server) throws URISyntaxException {
+		final boolean validation = Utils.getBooleanAccountData(am, account, SweetAuthenticatorActivity.KEY_PARAM_VALIDATE, true);
+		final boolean encrypt = Utils.getBooleanAccountData(am, account, SweetAuthenticatorActivity.KEY_PARAM_ENCRYPT, true);
+		
+		return getSugarAPI(server, validation, encrypt);
+		
+	}
+	private static synchronized SugarAPI getSugarAPI(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
 		if (api == null) {
-			api = new SugarRestAPI(server);
+			api = new SugarRestAPI(server, noCertValidation, encryptPasswd);
 		} else {
-			api.setServer(server);
+			api.setServer(server, noCertValidation, encryptPasswd);
 		}
 		return api;
 	}

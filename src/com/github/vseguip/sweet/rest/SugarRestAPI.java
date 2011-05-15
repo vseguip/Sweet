@@ -117,31 +117,33 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGAR_CONTACT_LINK_NAMES = "";
 	private static final Object SUGAR_CONTACTS_ORDER_BY = "";
 	private static URI mServer;
+	private static boolean mNoCertValidation;
+	private static boolean mEncryptPasswd;
 	private HttpClient mHttpClient;
 
-	public SugarRestAPI(String server) throws URISyntaxException {
-		setServer(server);
+	public SugarRestAPI(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
+		setServer(server, noCertValidation, encryptPasswd);
 	}
 
-	public boolean validate(String username, String passwd, Context context,
-			Handler handler) {
+	public boolean validate(String username, String passwd, Context context, Handler handler) {
 		return getToken(username, passwd, context, handler) == null;
 	}
 
-	public String getToken(String username, String passwd, Context context,
-			Handler handler) {
+	public String getToken(String username, String passwd, Context context, Handler handler) {
 		final HttpResponse resp;
 		JSONObject jso_content = new JSONObject();
 		try {
 			JSONObject jso_user = new JSONObject();
-			jso_user.put("user_name", username).put("password",
-					passwd/*encryptor(passwd)*/);
+			String sendpasswd = passwd;
+			if (mEncryptPasswd)
+				sendpasswd = encryptor(passwd);
+			jso_user.put("user_name", username).put("password", sendpasswd);
+
 			jso_content.put("user_auth", jso_user).put("application", "Sweet");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		final HttpPost post = prepareJSONRequest(jso_content.toString(),
-				LOGIN_METHOD);
+		final HttpPost post = prepareJSONRequest(jso_content.toString(), LOGIN_METHOD);
 		HttpClient httpClient = getConnection();
 		try {
 			resp = httpClient.execute(post);
@@ -151,8 +153,7 @@ public class SugarRestAPI implements SugarAPI {
 				}
 
 				// Buffer the result into a string
-				BufferedReader rd = new BufferedReader(new InputStreamReader(
-						resp.getEntity().getContent()));
+				BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 				StringBuilder sb = new StringBuilder();
 				String line;
 				while ((line = rd.readLine()) != null) {
@@ -176,15 +177,12 @@ public class SugarRestAPI implements SugarAPI {
 								// message!
 							} catch (JSONException ex) {
 								e.printStackTrace();
-								Log
-										.e(TAG,
-												"JSON exception, should never have gotten here!");
+								Log.e(TAG, "JSON exception, should never have gotten here!");
 							}
 							;
 						}
 					}
-					sendResult(false, handler, context, "Error during login "
-							+ message);
+					sendResult(false, handler, context, "Error during login " + message);
 					return null;
 				}
 				sendResult(true, handler, context, authToken);
@@ -193,24 +191,22 @@ public class SugarRestAPI implements SugarAPI {
 				if (Log.isLoggable(TAG, Log.VERBOSE)) {
 					Log.v(TAG, "Error authenticating" + resp.getStatusLine());
 				}
-				sendResult(false, handler, context, "Error authenticating"
-						+ resp.getStatusLine());
+				sendResult(false, handler, context, "Error authenticating" + resp.getStatusLine());
 				return null;
 			}
 		} catch (final IOException e) {
 			if (Log.isLoggable(TAG, Log.VERBOSE)) {
 				Log.v(TAG, "IOException when getting authtoken", e);
 			}
-			sendResult(false, handler, context, "Error trying to connect to "
-					+ mServer.toString());
+			sendResult(false, handler, context, "Error trying to connect to " + mServer.toString());
 			return null;
 		} catch (Exception e) {
 			e.printStackTrace();
 			sendResult(
-					false,
-					handler,
-					context,
-					"Error trying to validate your credentials. Check you server name and net connectivity.");
+						false,
+						handler,
+						context,
+						"Error trying to validate your credentials. Check you server name and net connectivity.");
 			return null;
 		} finally {
 			if (Log.isLoggable(TAG, Log.VERBOSE)) {
@@ -222,33 +218,26 @@ public class SugarRestAPI implements SugarAPI {
 
 	@Override
 	/** {@inheritDoc} */
-	public List<ISweetContact> getNewerContacts(String token, String date)
-			throws IOException, AuthenticationException {
+	public List<ISweetContact> getNewerContacts(String token, String date) throws IOException, AuthenticationException {
 		final HttpResponse resp;
 		Log.i(TAG, "getNewerContacts()");
 
 		JSONArray jso_array = new JSONArray();
 		JSONArray jso_fields = new JSONArray();
 		// TODO: add newer fields (adress and other phones)
-		jso_fields.put(SUGARCRM_CONTACT_ID_FIELD)
-				.put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD)
-				.put(SUGARCRM_TITLE_FIELD).put(SUGARCRM_ACCOUNT_NAME_FIELD)
-				.put(SUGARCRM_ACCOUNT_ID_FIELD).put(SUGARCRM_EMAIL1_FIELD).put(
-						SUGARCRM_PHONE_WORK_FIELD).put(
-						SUGARCRM_PHONE_MOBILE_FIELD).put(
-						SUGARCRM_FAX_WORK_FIELD).put(SUGARCRM_STREET_FIELD)
-				.put(SUGARCRM_CITY_FIELD).put(SUGARCRM_STATE_FIELD).put(
-						SUGARCRM_POSTAL_CODE_FIELD).put(SUGARCRM_COUNTRY_FIELD)
+		jso_fields.put(SUGARCRM_CONTACT_ID_FIELD).put(SUGARCRM_FIRST_NAME_FIELD).put(SUGARCRM_LAST_NAME_FIELD)
+				.put(SUGARCRM_TITLE_FIELD).put(SUGARCRM_ACCOUNT_NAME_FIELD).put(SUGARCRM_ACCOUNT_ID_FIELD)
+				.put(SUGARCRM_EMAIL1_FIELD).put(SUGARCRM_PHONE_WORK_FIELD).put(SUGARCRM_PHONE_MOBILE_FIELD)
+				.put(SUGARCRM_FAX_WORK_FIELD).put(SUGARCRM_STREET_FIELD).put(SUGARCRM_CITY_FIELD)
+				.put(SUGARCRM_STATE_FIELD).put(SUGARCRM_POSTAL_CODE_FIELD).put(SUGARCRM_COUNTRY_FIELD)
 				.put(SUGARCRM_DATE_MODIFIED_FIELD);
 		String sugar_query = SUGAR_CONTACTS_QUERY;
 		if (date != null)
 			sugar_query = "(contacts.date_modified >= '" + date + "')";
-		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(
-				SUGAR_CONTACTS_ORDER_BY).put(0).put(jso_fields).put(
-				SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
+		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(SUGAR_CONTACTS_ORDER_BY).put(0)
+				.put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
 
-		final HttpPost post = prepareJSONRequest(jso_array.toString(),
-				GET_METHOD);
+		final HttpPost post = prepareJSONRequest(jso_array.toString(), GET_METHOD);
 		HttpClient httpClient = getConnection();
 		Log.i(TAG, "Sending request");
 		resp = httpClient.execute(post);
@@ -258,8 +247,7 @@ public class SugarRestAPI implements SugarAPI {
 				Log.v(TAG, "Successful authentication");
 			}
 			Log.i(TAG, "Buffering request");
-			BufferedReader rd = new BufferedReader(new InputStreamReader(resp
-					.getEntity().getContent()));
+			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			List<ISweetContact> contacts = new ArrayList<ISweetContact>();
 			StringBuilder sb = new StringBuilder();
 			String line;
@@ -279,46 +267,26 @@ public class SugarRestAPI implements SugarAPI {
 					try {
 						// ID, first name and last name are compulsory, the rest
 						// can be skipped
-						JSONObject entrada = result.getJSONObject(i)
-								.getJSONObject("name_value_list");
-						contacts
-								.add(new SweetContact(
-										entrada.getJSONObject(
-												SUGARCRM_CONTACT_ID_FIELD)
-												.getString("value"),
-										entrada.getJSONObject(
-												SUGARCRM_FIRST_NAME_FIELD)
-												.getString("value"),
-										entrada.getJSONObject(
-												SUGARCRM_LAST_NAME_FIELD)
-												.getString("value"),
-										getSugarValue(entrada,
-												SUGARCRM_TITLE_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_ACCOUNT_NAME_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_ACCOUNT_ID_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_EMAIL1_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_PHONE_WORK_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_PHONE_MOBILE_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_FAX_WORK_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_STREET_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_CITY_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_STATE_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_POSTAL_CODE_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_COUNTRY_FIELD, ""),
-										getSugarValue(entrada,
-												SUGARCRM_DATE_MODIFIED_FIELD,
-												"")));
+						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
+						contacts.add(new SweetContact(entrada.getJSONObject(SUGARCRM_CONTACT_ID_FIELD)
+								.getString("value"), entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD)
+								.getString("value"),
+								entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
+								getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_ACCOUNT_NAME_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_ACCOUNT_ID_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_EMAIL1_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_PHONE_WORK_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_PHONE_MOBILE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_FAX_WORK_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_STREET_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_CITY_FIELD, ""), getSugarValue(
+																								entrada,
+																								SUGARCRM_STATE_FIELD,
+																								""),
+								getSugarValue(entrada, SUGARCRM_POSTAL_CODE_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_COUNTRY_FIELD, ""),
+								getSugarValue(entrada, SUGARCRM_DATE_MODIFIED_FIELD, "")));
 					} catch (Exception ex) {
 						ex.printStackTrace();
 						Log.e(TAG, "Unknown error parsing, skipping entry");
@@ -328,13 +296,10 @@ public class SugarRestAPI implements SugarAPI {
 				return contacts;
 			} catch (Exception e) {
 				if (json != null) {
-					Log
-							.i(TAG,
-									"Error parsing json in getNewerContacts. Auth invalid");
+					Log.i(TAG, "Error parsing json in getNewerContacts. Auth invalid");
 					try {
 
-						throw new AuthenticationException(json
-								.getString("description"));
+						throw new AuthenticationException(json.getString("description"));
 					} catch (JSONException ex) {
 						throw new AuthenticationException("Invalid session");
 					}
@@ -352,8 +317,7 @@ public class SugarRestAPI implements SugarAPI {
 	}
 
 	@Override
-	public List<String> sendNewContacts(String token,
-			List<ISweetContact> contacts, boolean create) throws IOException,
+	public List<String> sendNewContacts(String token, List<ISweetContact> contacts, boolean create) throws IOException,
 			AuthenticationException {
 		final HttpResponse resp;
 		ArrayList<String> listaIds = new ArrayList<String>();
@@ -366,38 +330,22 @@ public class SugarRestAPI implements SugarAPI {
 			JSONArray jsonContactArray = new JSONArray();
 			try {
 				if (!create)
-					setJsonFieldEntry(jsonContactArray,
-							SUGARCRM_CONTACT_ID_FIELD, c.getId());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_FIRST_NAME_FIELD,
-						c.getFirstName());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_LAST_NAME_FIELD, c
-						.getLastName());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_TITLE_FIELD, c
-						.getTitle());
-				setJsonFieldEntry(jsonContactArray,
-						SUGARCRM_ACCOUNT_NAME_FIELD, c.getAccountName());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_ACCOUNT_ID_FIELD,
-						c.getAccountId());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_EMAIL1_FIELD, c
-						.getEmail1());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_PHONE_WORK_FIELD,
-						c.getWorkPhone());
-				setJsonFieldEntry(jsonContactArray,
-						SUGARCRM_PHONE_MOBILE_FIELD, c.getMobilePhone());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_FAX_WORK_FIELD, c
-						.getWorkFax());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_STREET_FIELD, c
-						.getStreet());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_CITY_FIELD, c
-						.getCity());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_STATE_FIELD, c
-						.getRegion());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_POSTAL_CODE_FIELD,
-						c.getPostalCode());
-				setJsonFieldEntry(jsonContactArray, SUGARCRM_COUNTRY_FIELD, c
-						.getCountry());
-				setJsonFieldEntry(jsonContactArray,
-						SUGARCRM_DATE_MODIFIED_FIELD, c.getDateModified());
+					setJsonFieldEntry(jsonContactArray, SUGARCRM_CONTACT_ID_FIELD, c.getId());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_FIRST_NAME_FIELD, c.getFirstName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_LAST_NAME_FIELD, c.getLastName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_TITLE_FIELD, c.getTitle());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_ACCOUNT_NAME_FIELD, c.getAccountName());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_ACCOUNT_ID_FIELD, c.getAccountId());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_EMAIL1_FIELD, c.getEmail1());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_PHONE_WORK_FIELD, c.getWorkPhone());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_PHONE_MOBILE_FIELD, c.getMobilePhone());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_FAX_WORK_FIELD, c.getWorkFax());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_STREET_FIELD, c.getStreet());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_CITY_FIELD, c.getCity());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_STATE_FIELD, c.getRegion());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_POSTAL_CODE_FIELD, c.getPostalCode());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_COUNTRY_FIELD, c.getCountry());
+				setJsonFieldEntry(jsonContactArray, SUGARCRM_DATE_MODIFIED_FIELD, c.getDateModified());
 				jsonContactList.put(jsonContactArray);
 			} catch (JSONException e) {
 				Log.e(TAG, "Error sending contact to the server");
@@ -407,8 +355,7 @@ public class SugarRestAPI implements SugarAPI {
 		}
 		jsonData.put(token).put(SUGAR_MODULE_CONTACTS).put(jsonContactList);
 
-		final HttpPost post = prepareJSONRequest(jsonData.toString(),
-				SET_METHOD);
+		final HttpPost post = prepareJSONRequest(jsonData.toString(), SET_METHOD);
 		HttpClient httpClient = getConnection();
 		Log.i(TAG, "Sending request");
 
@@ -416,8 +363,7 @@ public class SugarRestAPI implements SugarAPI {
 		Log.i(TAG, "Got response");
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 			Log.i(TAG, "Buffering request");
-			BufferedReader rd = new BufferedReader(new InputStreamReader(resp
-					.getEntity().getContent()));
+			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			StringBuilder sb = new StringBuilder();
 			String line;
 			while ((line = rd.readLine()) != null) {
@@ -435,12 +381,9 @@ public class SugarRestAPI implements SugarAPI {
 				}
 			} catch (Exception e) {
 				if (response != null) {
-					Log
-							.i(TAG,
-									"Error parsing json in sendNewContacts. Auth invalid");
+					Log.i(TAG, "Error parsing json in sendNewContacts. Auth invalid");
 					try {
-						throw new AuthenticationException(response
-								.getString("description"));
+						throw new AuthenticationException(response.getString("description"));
 					} catch (JSONException ex) {
 						throw new AuthenticationException("Invalid session");
 					}
@@ -461,11 +404,9 @@ public class SugarRestAPI implements SugarAPI {
 	 *            The value of the entry
 	 * @throws JSONException
 	 */
-	private void setJsonFieldEntry(JSONArray jsonContactArray,
-			String fieldName, String value) throws JSONException {
+	private void setJsonFieldEntry(JSONArray jsonContactArray, String fieldName, String value) throws JSONException {
 		if ((value != null) && (!TextUtils.isEmpty(value.trim()))) {
-			jsonContactArray.put(new JSONObject().put("name", fieldName).put(
-					"value", value));
+			jsonContactArray.put(new JSONObject().put("name", fieldName).put("value", value));
 		}
 	}
 
@@ -492,8 +433,7 @@ public class SugarRestAPI implements SugarAPI {
 	 * @return The HttpPost representing the Sugar REST Api Call
 	 * @throws AssertionError
 	 */
-	private HttpPost prepareJSONRequest(String rest_data, String method)
-			throws AssertionError {
+	private HttpPost prepareJSONRequest(String rest_data, String method) throws AssertionError {
 		AbstractHttpEntity entity = null;
 		try {
 			final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -526,22 +466,17 @@ public class SugarRestAPI implements SugarAPI {
 			HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
 			HttpProtocolParams.setUseExpectContinue(params, false);
 			HttpConnectionParams.setConnectionTimeout(params, TIMEOUT_OPS);
-			HttpConnectionParams.setSoTimeout(params, TIMEOUT_OPS);			
-			ConnManagerParams.setTimeout(params, TIMEOUT_OPS);		
+			HttpConnectionParams.setSoTimeout(params, TIMEOUT_OPS);
+			ConnManagerParams.setTimeout(params, TIMEOUT_OPS);
 			SchemeRegistry registry = new SchemeRegistry();
-			registry.register(new Scheme("http", PlainSocketFactory
-					.getSocketFactory(), 80));
-			final SSLSocketFactory sslSocketFactory = SSLSocketFactory
-					.getSocketFactory();
-			sslSocketFactory
-					.setHostnameVerifier(SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-			
-			//registry.register(new Scheme("https", sslSocketFactory, 443));
+			registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
+			sslSocketFactory.setHostnameVerifier(SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+
+			// registry.register(new Scheme("https", sslSocketFactory, 443));
 			registry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
-			ThreadSafeClientConnManager manager = new ThreadSafeClientConnManager(
-					params, registry);
+			ThreadSafeClientConnManager manager = new ThreadSafeClientConnManager(params, registry);
 			mHttpClient = new DefaultHttpClient(manager, params);
-			
 
 		}
 		return mHttpClient;
@@ -561,15 +496,14 @@ public class SugarRestAPI implements SugarAPI {
 	 *            SessionID if login was successful or error message if it was
 	 *            not.
 	 */
-	private static void sendResult(final Boolean result, final Handler handler,
-			final Context context, final String message) {
+	private static void sendResult(final Boolean result, final Handler handler, final Context context,
+			final String message) {
 		if (handler == null || context == null) {
 			return;
 		}
 		handler.post(new Runnable() {
 			public void run() {
-				((SweetAuthenticatorActivity) context).onValidationResult(
-						result, message);
+				((SweetAuthenticatorActivity) context).onValidationResult(result, message);
 			}
 		});
 	}
@@ -588,8 +522,7 @@ public class SugarRestAPI implements SugarAPI {
 
 			StringBuffer hexString = new StringBuffer();
 			for (int i = 0; i < messageDigest.length; i++) {
-				hexString
-						.append(String.format("%02x", 0xFF & messageDigest[i]));
+				hexString.append(String.format("%02x", 0xFF & messageDigest[i]));
 			}
 			temppass = hexString.toString();
 		} catch (NoSuchAlgorithmException nsae) {
@@ -600,8 +533,10 @@ public class SugarRestAPI implements SugarAPI {
 	}
 
 	@Override
-	public void setServer(String server) throws URISyntaxException {
+	public void setServer(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
 		mServer = new URI(server);
+		mNoCertValidation = noCertValidation;
+		mEncryptPasswd = encryptPasswd;
 	}
 
 }

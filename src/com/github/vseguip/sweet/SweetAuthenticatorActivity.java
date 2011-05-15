@@ -3,6 +3,7 @@ package com.github.vseguip.sweet;
 import java.net.URISyntaxException;
 import com.github.vseguip.sweet.rest.SugarAPI;
 import com.github.vseguip.sweet.rest.SugarAPIFactory;
+import com.github.vseguip.sweet.utils.Utils;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +37,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 	public static final String KEY_SYNC_VERSION = "syncVersion";
 
 	public static final String KEY_PARAM_SERVER = "server";
+	public static final String KEY_PARAM_VALIDATE = "noCertificateValidation";
+	public static final String KEY_PARAM_ENCRYPT = "encryptPasswd";
 	/** The Intent flag to confirm credentials. **/
 	public static final String PARAM_CONFIRM_CREDENTIALS = "confirmCredentials";
 	/** The Intent extra to store password. **/
@@ -67,6 +71,10 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	private TextView mTextAction;
 
+	private CheckBox mCheckCerts;
+
+	private CheckBox mCheckEncrypt;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "onCreate(" + savedInstanceState + ")");
@@ -93,6 +101,8 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		mUserEdit = (EditText) findViewById(R.id.EditUserName);
 		mPasswdEdit = (EditText) findViewById(R.id.EditPassword);
 		mServerEdit = (EditText) findViewById(R.id.EditServer);
+		mCheckCerts = (CheckBox) findViewById(R.id.checkAcceptCerts);
+		mCheckEncrypt = (CheckBox) findViewById(R.id.checkEncryptPassword);
 		mViewF = (ViewFlipper) findViewById(R.id.ViewFlipper01);
 		mButtonValidate = (Button) findViewById(R.id.buttonValidate);
 		mButtonBack = (Button) findViewById(R.id.buttonBack);
@@ -106,16 +116,23 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 				finish();
 				return;
 			}
+			mCheckCerts.setChecked(true);
+			mCheckEncrypt.setChecked(true);
 			mTextAction.setText(R.string.activity_create);
 		} else {
 			mTextAction.setText(R.string.activity_check_update);
 		}
 		if (!mConfirmCredentials && !mCreateAccount) {
 			String username = intent.getStringExtra(PARAM_USERNAME);
-			String server = mAccountManager.getUserData(new Account(username, ACCOUNT_TYPE), KEY_PARAM_SERVER);
+			Account acc = new Account(username, ACCOUNT_TYPE);
+			String server = mAccountManager.getUserData(acc, KEY_PARAM_SERVER);
+			boolean validate = Utils.getBooleanAccountData(mAccountManager, acc, KEY_PARAM_VALIDATE, true);
+			boolean encrypt = Utils.getBooleanAccountData(mAccountManager, acc, KEY_PARAM_ENCRYPT, true);
 			mUserEdit.setText(username);
 			mPasswdEdit.setText(intent.getStringExtra(PARAM_PASSWORD));
 			mServerEdit.setText(server);
+			mCheckCerts.setChecked(validate);
+			mCheckEncrypt.setChecked(encrypt);
 		}
 		mButtonValidate.setOnClickListener(new OnClickListener() {
 			@Override
@@ -123,9 +140,13 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 				String username;
 				String passwd;
 				String server;
+				boolean noValidate;
+				boolean encrypt;
 				username = mUserEdit.getText().toString();
 				passwd = mPasswdEdit.getText().toString();
 				server = mServerEdit.getText().toString();
+				noValidate = mCheckCerts.isChecked();
+				encrypt = mCheckCerts.isChecked();
 				if (username == null || username.length() <= 0) {
 					Toast.makeText(SweetAuthenticatorActivity.this, "Please enter a valid username", Toast.LENGTH_LONG);
 					return;
@@ -142,8 +163,11 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 					return;
 				}
 				try {
-					SugarAPI sugar = SugarAPIFactory.getSugarAPI(server);
-					sugar.setServer(server);
+					Account acc =  new Account(username, ACCOUNT_TYPE);
+					mAccountManager.setUserData(acc, KEY_PARAM_SERVER, server);
+					mAccountManager.setUserData(acc, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
+					mAccountManager.setUserData(acc, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
+					SugarAPI sugar = SugarAPIFactory.getSugarAPI(mAccountManager, acc, server);
 					sugar.getToken(username, passwd, SweetAuthenticatorActivity.this, handler);
 				} catch (URISyntaxException ex) {
 					Toast.makeText(
@@ -178,9 +202,13 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		String username = mUserEdit.getText().toString();
 		String passwd = mPasswdEdit.getText().toString();
 		String server = mServerEdit.getText().toString();
+		boolean noValidate = mCheckCerts.isChecked();
+		boolean encrypt = mCheckCerts.isChecked();
 		final Account account = new Account(username, ACCOUNT_TYPE);
 		mAccountManager.setPassword(account, passwd);
 		mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
+		mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
+		mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
 		final Intent intent = new Intent();
 		intent.putExtra(AccountManager.KEY_BOOLEAN_RESULT, true);
 		setAccountAuthenticatorResult(intent.getExtras());
@@ -196,16 +224,20 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		String username = mUserEdit.getText().toString();
 		String passwd = mPasswdEdit.getText().toString();
 		String server = mServerEdit.getText().toString();
-
+		boolean noValidate = mCheckCerts.isChecked();
+		boolean encrypt = mCheckCerts.isChecked();
 		final Account account = new Account(username, ACCOUNT_TYPE);
 		if (mCreateAccount) {
 			Bundle serverData = new Bundle();
 			// serverData.putString(KEY_PARAM_SERVER, server);
 			mAccountManager.addAccountExplicitly(account, passwd, serverData);
 			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
+			mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
+			mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
 			// set the version of the data mapping used for
 			// contacts/calendars/etc
 			mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
+			
 			// Set contacts sync for this account.
 			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
 			ContentProviderClient client = getContentResolver()
@@ -223,6 +255,9 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 
 		} else {
 			mAccountManager.setPassword(account, passwd);
+			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
+			mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
+			mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
 		}
 		final Intent intent = new Intent();
 		intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);

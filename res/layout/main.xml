@@ -34,9 +34,12 @@
 					android:hint="http://example.com/sugarcrm/service/v2/rest.php" 
 					android:padding="5dp" android:imeOptions="actionNext"/>
 
-				<CheckBox android:text="@+string/acceptcerts" android:id="@+id/CheckAcceptCerts"
+				<CheckBox android:text="@string/acceptcerts" android:id="@+id/checkAcceptCerts"
 					android:textAppearance="?android:attr/textAppearanceLarge"
-					android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone"></CheckBox>
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+				<CheckBox android:text="@string/encryptpassword" android:id="@+id/checkEncryptPassword"
+					android:textAppearance="?android:attr/textAppearanceLarge"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
 
 			</LinearLayout>
 			<LinearLayout android:layout_width="wrap_content"

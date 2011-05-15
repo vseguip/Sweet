@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.http.auth.AuthenticationException;
 
 import com.github.vseguip.sweet.R;
-import com.github.vseguip.sweet.SweetAuthenticatorActivity;
 import com.github.vseguip.sweet.rest.SugarAPI;
 import com.github.vseguip.sweet.rest.SugarAPIFactory;
 import com.github.vseguip.sweet.rest.SweetContact;
@@ -413,8 +412,7 @@ public class SweetConflictResolveActivity extends Activity {
 			for (int i = 0; i < contactsA.length; i++) {
 				publishProgress(progress++);
 				List<ISweetContact> contacts = contactsA[i];
-				String lastDate = mAccountManager.getUserData(mAccount, SweetContactSync.LAST_SYNC_KEY);
-				String server = mAccountManager.getUserData(mAccount, SweetAuthenticatorActivity.KEY_PARAM_SERVER);
+				String lastDate = mAccountManager.getUserData(mAccount, SweetContactSync.LAST_SYNC_KEY);				
 				Log.i(TAG, "Local update");
 				if (mActivity != null) {
 					ContactManager.syncContacts(mActivity, mAccount, contacts);
@@ -428,8 +426,9 @@ public class SweetConflictResolveActivity extends Activity {
 					}
 
 					SugarAPI sugar;
-					try {
-						sugar = SugarAPIFactory.getSugarAPI(server);
+					try {						
+
+						sugar = SugarAPIFactory.getSugarAPI(mAccountManager, mAccount );
 						publishProgress(progress++);
 						String authToken = mAccountManager.blockingGetAuthToken(mAccount, mAccountType, true);
 						if (authToken == null) {
