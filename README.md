@@ -49,19 +49,14 @@ them and save the changes in the server and the phone. Due to
 limitations in stock the Android contact editor a custom interface is
 provided to edit contacts. In order to show this interface one must
 press the SugarCRM profile entry in the contact detailed view, using
-the contact editor will not work.
-
-Adding contacts in the phone is also supported and will be accordingly
-uploaded to the server. As of now this is a little bit cumbersome: one
-must first add a contact to this account. The stock android editor
-will only allow you to put the first and last name. After doing this
-you need to perform a sync which will add the needed profile entry to
-the contact. You can the proceed as usual. 
+the contact editor will not work. Adding contacts in the phone is also 
+supported and will be accordingly uploaded to the server but you have 
+to use the Sweet contact editor instead of the stock Android editor. 
+Do not set this editor as the default since it can't handle other accounts.  
 
 
 Known limitations and bugs
 --------------------------
-- Doesn't support SSL.
 - Only one SugarCRM account in your phone.
 - Limited and fixed number of contact fields.
 - Has bugs
@@ -71,9 +66,8 @@ TODO
 ----
 - Bug fixing
 - Decide what to do with deleted contacts. Right now nothing is done
-- Implement SSL
 - Allow multiple accounts
-- Revisit how manym, which fields are allowed and how the map to SugarCRM.
+- Revisit how many and which fields are allowed and how they map to SugarCRM.
 
 
 FAQ
@@ -104,6 +98,12 @@ Q: I have a bug where can I report it?
 A: Sweet development is going on at [Github](https://github.com/vseguip/Sweet). You can send bug reports to https://github.com/vseguip/Sweet/issues.
 
 
+Q: I can't login but I'm sure my username, password and server are correct, what is going on?
+
+A: Maybe your SugarCRM account is backed by an LDAP server in which case you may need to send the password unencrypted. As of version 0.2 Sweet supports sending passwords in the clear but please make sure you use an https connection to avoid eavesdropping. 
+
+
 Q: I have a patch where can I send it?
 
 A: Right now I'm not accepting patches since the project is done as part of my final career project. 
+
