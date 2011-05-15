@@ -56,7 +56,7 @@
 	<string name="full_sync_title">Perform full sync</string>
  
 	<string name="sync_version">0.1</string>
-	<string name="succesful_authentication">Account succesfully authenticated. Try to sync
+	<string name="succesful_authentication">Account successfully authenticated. Try to sync
 		again if there were any problems in your last attempt</string>
 	<string name="activity_create">Enter your new account settings</string>
 	<string name="activity_check_update">Please check and update your account data settings
