@@ -75,6 +75,16 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	private CheckBox mCheckEncrypt;
 
+	private String mUsername;
+
+	private String mPasswd;
+
+	private String mServer;
+
+	private boolean mNoValidate;
+
+	private boolean mEncrypt;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "onCreate(" + savedInstanceState + ")");
@@ -137,25 +147,16 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 		mButtonValidate.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				String username;
-				String passwd;
-				String server;
-				boolean noValidate;
-				boolean encrypt;
-				username = mUserEdit.getText().toString();
-				passwd = mPasswdEdit.getText().toString();
-				server = mServerEdit.getText().toString();
-				noValidate = mCheckCerts.isChecked();
-				encrypt = mCheckCerts.isChecked();
-				if (username == null || username.length() <= 0) {
+				getUIAccountData();
+				if (mUsername == null || mUsername.length() <= 0) {
 					Toast.makeText(SweetAuthenticatorActivity.this, "Please enter a valid username", Toast.LENGTH_LONG);
 					return;
 				}
-				if (passwd == null || passwd.length() <= 0) {
+				if (mPasswd == null || mPasswd.length() <= 0) {
 					Toast.makeText(SweetAuthenticatorActivity.this, "Please enter a valid passwd", Toast.LENGTH_LONG);
 					return;
 				}
-				if (server == null || server.length() <= 0) {
+				if (mServer == null || mServer.length() <= 0) {
 					Toast.makeText(
 									SweetAuthenticatorActivity.this,
 									"Please enter a valid URL to use as a server resource",
@@ -163,12 +164,15 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 					return;
 				}
 				try {
-					Account acc =  new Account(username, ACCOUNT_TYPE);
-					mAccountManager.setUserData(acc, KEY_PARAM_SERVER, server);
-					mAccountManager.setUserData(acc, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
-					mAccountManager.setUserData(acc, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
-					SugarAPI sugar = SugarAPIFactory.getSugarAPI(mAccountManager, acc, server);
-					sugar.getToken(username, passwd, SweetAuthenticatorActivity.this, handler);
+					Account account = new Account(mUsername, ACCOUNT_TYPE);
+					SugarAPI sugar;
+					if (mCreateAccount) {					
+						sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account, mServer);
+					} else {
+						setAccountData(account);
+						sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account);
+					}
+					sugar.getToken(mUsername, mPasswd, SweetAuthenticatorActivity.this, handler);
 				} catch (URISyntaxException ex) {
 					Toast.makeText(
 									SweetAuthenticatorActivity.this,
@@ -199,16 +203,9 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	protected void confirmCredentials() {
 		Log.i(TAG, "finishConfirmCredentials()");
-		String username = mUserEdit.getText().toString();
-		String passwd = mPasswdEdit.getText().toString();
-		String server = mServerEdit.getText().toString();
-		boolean noValidate = mCheckCerts.isChecked();
-		boolean encrypt = mCheckCerts.isChecked();
-		final Account account = new Account(username, ACCOUNT_TYPE);
-		mAccountManager.setPassword(account, passwd);
-		mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
-		mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
-		mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
+		getUIAccountData();
+		final Account account = new Account(mUsername, ACCOUNT_TYPE);
+		setAccountData(account);
 		final Intent intent = new Intent();
 		intent.putExtra(AccountManager.KEY_BOOLEAN_RESULT, true);
 		setAccountAuthenticatorResult(intent.getExtras());
@@ -221,23 +218,12 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	protected void createAccount() {
 		Log.i(TAG, "createAccount()");
-		String username = mUserEdit.getText().toString();
-		String passwd = mPasswdEdit.getText().toString();
-		String server = mServerEdit.getText().toString();
-		boolean noValidate = mCheckCerts.isChecked();
-		boolean encrypt = mCheckCerts.isChecked();
-		final Account account = new Account(username, ACCOUNT_TYPE);
+		getUIAccountData();
+		final Account account = new Account(mUsername, ACCOUNT_TYPE);
 		if (mCreateAccount) {
 			Bundle serverData = new Bundle();
-			// serverData.putString(KEY_PARAM_SERVER, server);
-			mAccountManager.addAccountExplicitly(account, passwd, serverData);
-			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
-			mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
-			mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
-			// set the version of the data mapping used for
-			// contacts/calendars/etc
-			mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
-			
+			mAccountManager.addAccountExplicitly(account, mPasswd, serverData);
+			setAccountData(account);
 			// Set contacts sync for this account.
 			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
 			ContentProviderClient client = getContentResolver()
@@ -254,22 +240,49 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 			}
 
 		} else {
-			mAccountManager.setPassword(account, passwd);
-			mAccountManager.setUserData(account, KEY_PARAM_SERVER, server);
-			mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(noValidate));
-			mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(encrypt));
+			setAccountData(account);
 		}
 		final Intent intent = new Intent();
-		intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+		intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, mUsername);
 		intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, ACCOUNT_TYPE);
-		intent.putExtra(AccountManager.KEY_PASSWORD, passwd);
-		intent.putExtra(AccountManager.KEY_USERDATA, server);
+		intent.putExtra(AccountManager.KEY_PASSWORD, mPasswd);
+		intent.putExtra(AccountManager.KEY_USERDATA, mServer);
 		if (mAuthtokenType != null && mAuthtokenType.equals(ACCOUNT_TYPE)) {
 			intent.putExtra(AccountManager.KEY_AUTHTOKEN, mIdSession);
 		}
 		setAccountAuthenticatorResult(intent.getExtras());
 		setResult(RESULT_OK, intent);
 		finish();
+	}
+
+	/**
+	 * Get account data from the UI
+	 * 
+	 */
+	private void getUIAccountData() {
+		mUsername = mUserEdit.getText().toString();
+		mPasswd = mPasswdEdit.getText().toString();
+		mServer = mServerEdit.getText().toString();
+		mNoValidate = mCheckCerts.isChecked();
+		mEncrypt = mCheckEncrypt.isChecked();
+	}
+
+	/**
+	 * Sets the account data (server, ssl support and password encryption)
+	 * 
+	 * @param account
+	 *            The account to set the data for
+	 * 
+	 */
+	private void setAccountData(final Account account) {
+
+		mAccountManager.setUserData(account, KEY_PARAM_SERVER, mServer);
+		mAccountManager.setUserData(account, KEY_PARAM_VALIDATE, Boolean.toString(mNoValidate));
+		mAccountManager.setUserData(account, KEY_PARAM_ENCRYPT, Boolean.toString(mEncrypt));
+		// set the version of the data mapping used for
+		// contacts/calendars/etc
+		mAccountManager.setPassword(account, mPasswd);
+		mAccountManager.setUserData(account, KEY_SYNC_VERSION, getString(R.string.sync_version));
 	}
 
 	public void onValidationResult(boolean result, String message) {
