@@ -39,7 +39,7 @@
 	<string name="only_one_account">You already have one Sweet account. Sweet does not support multiple accounts.</string>
 	<string name="validationOk">Your account settings have been validated
 		successfully. Press the create button to create your account.</string>
-
+<string name="encryptHint">Uncheck if you are using an LDAP backed account or experiencing problems validating your account.</string>
 	<string name="account_label">Sweet account</string>
 	<string name="sync_preferences">Sweet synchronization preferences</string>
 	<string name="sync_notifications_summary">Check this is you want to sync leads and calls with
