@@ -472,9 +472,10 @@ public class SugarRestAPI implements SugarAPI {
 			registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
 			final SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
 			sslSocketFactory.setHostnameVerifier(SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-
-			// registry.register(new Scheme("https", sslSocketFactory, 443));
-			registry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
+			if (!mNoCertValidation)
+				registry.register(new Scheme("https", sslSocketFactory, 443));
+			else
+				registry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
 			ThreadSafeClientConnManager manager = new ThreadSafeClientConnManager(params, registry);
 			mHttpClient = new DefaultHttpClient(manager, params);
 
