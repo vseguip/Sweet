@@ -528,7 +528,7 @@ public class ContactManager {
 				String[] extra_fields = ContactFields.EXTRA_FIELDS[i];
 				values.clear();
 				ContentProviderOperation.Builder builder = getDataInsertBuilder();
-				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
+				if ((data_key != null) && (data != null)) {
 					values.put(Data.SYNC1, field);// insert wich field generated
 					// this row, will make it
 					// easy to retrieve later
