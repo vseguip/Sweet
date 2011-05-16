@@ -35,14 +35,15 @@ public class SugarAPIFactory {
 		return getSugarAPI(am, account, server);
 		
 	}
-	public static synchronized SugarAPI getSugarAPI(AccountManager am, Account account, String server) throws URISyntaxException {
+	private static synchronized SugarAPI getSugarAPI(AccountManager am, Account account, String server) throws URISyntaxException {
 		final boolean validation = Utils.getBooleanAccountData(am, account, SweetAuthenticatorActivity.KEY_PARAM_VALIDATE, true);
 		final boolean encrypt = Utils.getBooleanAccountData(am, account, SweetAuthenticatorActivity.KEY_PARAM_ENCRYPT, true);
 		
 		return getSugarAPI(server, validation, encrypt);
 		
 	}
-	private static synchronized SugarAPI getSugarAPI(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
+	
+	public static synchronized SugarAPI getSugarAPI(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
 		if (api == null) {
 			api = new SugarRestAPI(server, noCertValidation, encryptPasswd);
 		} else {

@@ -167,7 +167,7 @@ public class SweetAuthenticatorActivity extends AccountAuthenticatorActivity {
 					Account account = new Account(mUsername, ACCOUNT_TYPE);
 					SugarAPI sugar;
 					if (mCreateAccount) {					
-						sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account, mServer);
+						sugar = SugarAPIFactory.getSugarAPI(mServer, mNoValidate, mEncrypt);
 					} else {
 						setAccountData(account);
 						sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account);
