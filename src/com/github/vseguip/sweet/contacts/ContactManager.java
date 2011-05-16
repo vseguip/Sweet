@@ -113,22 +113,31 @@ public class ContactManager {
 	 *            the ISweetContact interface.
 	 */
 
-	public static int syncContacts(Context context, Account acc, List<ISweetContact> contacts) {
+	public static int syncContacts(Context context, Account acc,
+			List<ISweetContact> contacts) {
 		Log.i(TAG, "syncContacts()");
 		getAccountType(context);
 		ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 		ContentResolver resolver = context.getContentResolver();
 		Log.i(TAG, "Starting to sync locally");
-		// int i = 0;
-		for (ISweetContact c : contacts) {
-			long localId = findLocalContact(resolver, c.getId());
-			if (localId == 0) {
-				addContact(resolver, ops, acc.name, c);
-			} else {
-				updateContact(resolver, ops, c, localId, true);
-			}
-		}
+		int i = 0;
 		try {
+			for (ISweetContact c : contacts) {
+				long localId = findLocalContact(resolver, c.getId());
+				if (localId == 0) {
+					addContact(resolver, ops, acc.name, c);
+				} else {
+					updateContact(resolver, ops, c, localId, true);
+				}
+				if ((ops.size() > 0) && (i % 50 == 0)) {
+					Log.e(TAG, "Applying " + ops.size()
+							+ " operations in a batch");
+					resolver.applyBatch(ContactsContract.AUTHORITY, ops);
+					ops.clear();
+				}
+				i++;
+			}
+
 			// Do the last pending ops
 			if (ops.size() > 0) {
 				Log.e(TAG, "Applying " + ops.size() + " operations in a batch");
