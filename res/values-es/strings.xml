@@ -6,7 +6,7 @@
 	<string name="username">Usuario</string>
 	<string name="password">Contraseña</string>
 	<string name="server">Servidor</string>
-	<string name="usessl">Usar conexió segura SSL</string>
+	<string name="usessl">Usar conexión segura SSL</string>
 	<string name="acceptcerts">Aceptar todos los certificados SSL</string>
 	<string name="encryptpassword">Encriptar contraseña</string>
 	<string name="cancel">Cancelar</string>
@@ -54,7 +54,7 @@
 	<string name="sync_version">0.1</string>
 	<string name="succesful_authentication">Cuenta autenticada con éxito. Pruebe a sincronizar nuevamente si tuvo problemas anteriormente</string>
 	<string name="activity_create">Introduzca sus nuevos ajustes de cuenta</string>
-	<string name="activity_check_update">Por favor compruebe y actualize sus ajustes de cuenta
+	<string name="activity_check_update">Por favor compruebe y actualice sus ajustes de cuenta
 	</string>
 	<string name="sync_conflict">Resolver conflictos</string>
 
@@ -69,7 +69,7 @@
 	<string name="notify_sync_conflict_ticket">Conflicto sincronización Sweet </string>
 	<string name="resolve">Resolver</string>
 	<string name="resolve_conflict">Resolver contacto </string>
-	<string name="conflict_choose_field">Escoga el campo deseado para cada conflicto</string>
+	<string name="conflict_choose_field">Escoja el campo deseado para cada conflicto</string>
 	<string name="spinner_tag_field">spinner_tag_field</string>
 	<string name="spinner_tag_local">spinner_tag_local</string>
 	<string name="spinner_tag_remote">spinner_tag_remote</string>
