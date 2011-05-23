@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="app_name">Sweet</string>
+	<string name="save">Guarda</string>
+	<string name="username">Usuario</string>
+	<string name="password">Contraseña</string>
+	<string name="server">Servidor</string>
+	<string name="usessl">Usar conexió segura SSL</string>
+	<string name="acceptcerts">Aceptar todos los certificados SSL</string>
+	<string name="encryptpassword">Encriptar contraseña</string>
+	<string name="cancel">Cancelar</string>
+	<string name="validate">Validar</string>
+	<string name="back">Atrás</string>
+	<string name="createAccount">Crear cuenta</string>
+	<!-- For the contact editor activity -->
+	<string name="contact">Contacto</string>
+	<string name="firstName">Nombre</string>
+	<string name="lastName">Apellido</string>
+	<string name="accountName">Organización</string>
+	<string name="title">Título</string>
+	<string name="sample"></string>
+
+	<string name="personal_info">Información personal</string>
+	<string name="contact_information">Información de contacto</string>
+	<string name="address_info">Dirección de contacto</string>	<string name="workPhone">Trabajo</string>
+	<string name="mobilePhone">Móvil</string>
+	<string name="workFax">Fax</string>
+	<string name="email1">Correo</string>
+
+	<string name="address">Dirección</string>
+	<string name="street">Calle</string>
+	<string name="city">Ciudad</string>
+	<string name="postalCode">Código postal</string>
+	<string name="state">Región</string>
+	<string name="country">País</string>
+	<string name="choose_account">Eliga cuenta de Sweet donde crear el contact</string>
+	<string name="error_no_account">Por favor cree una cuenta Sweet antes de intentar añadir contactos de Sweet.</string>
+	<!-- End contact editor activity -->
+	<string name="only_one_account">Ya dispone de una cuenta Sweet. Sweet no permite múltiples cuentas.</string>
+	<string name="validationOk">Los ajustes han sido validados. Presione el botón crear para finalizar el proceso.</string>
+<string name="encryptHint">Cambie el ajuste si usa cuentas LDAP o si tiene problemas con la validación.</string>
+	<string name="account_label">Sweet account</string>
+	<string name="sync_preferences">Preferencias de sincronización de Sweet</string>
+	<string name="sync_notifications_summary">Seleccione si quiere sincronizar llamadas.</string>
+	<string name="sync_notifications_title">Sincronización de notificaciones</string>
+	<string name="sync_calendar_summary">Seleccione si quiere sincronizar el calendario</string>
+	<string name="sync_calendar_title">Sincronizar calendario</string>
+	<string name="sync_contacts_summary">Seleccione si quiere sincronizar contactos</string>
+	<string name="sync_contacts_title">Sincronizar contactos</string>
+	<string name="full_sync_summary">Eliga esta opción si siempre quiere realizar una sincronización completa con el servidor SugarCRM.</string>
+	<string name="full_sync_title">Sincronización completa</string>
+ 
+	<string name="sync_version">0.1</string>
+	<string name="succesful_authentication">Cuenta autenticada con éxito. Pruebe a sincronizar nuevamente si tuvo problemas anteriormente</string>
+	<string name="activity_create">Introduzca sus nuevos ajustes de cuenta</string>
+	<string name="activity_check_update">Por favor compruebe y actualize sus ajustes de cuenta
+	</string>
+	<string name="sync_conflict">Resolver conflictos</string>
+
+	<string name="server_resolve_title">Preferir servidor</string>
+	<string name="server_resolve_summary">Cuando hay conflictos usar preferentemente los datos del servidor</string>
+	<!--  UI for conflict resolving -->
+
+	<string name="notify_sync_conflict_message">Presione para resolver los conflictos con el servidor
+		SugarCRM.</string>
+	
+	<string name="notify_sync_conflict_title">Conflictos pendientes.</string>
+	<string name="notify_sync_conflict_ticket">Conflicto sincronización Sweet </string>
+	<string name="resolve">Resolver</string>
+	<string name="resolve_conflict">Resolver contacto </string>
+	<string name="conflict_choose_field">Escoga el campo deseado para cada conflicto</string>
+	<string name="spinner_tag_field">spinner_tag_field</string>
+	<string name="spinner_tag_local">spinner_tag_local</string>
+	<string name="spinner_tag_remote">spinner_tag_remote</string>
+	<string name="conflict_resolved">Todos los conflictos resueltos. Intente sincronizar nuevamente si es necesario.</string>
+	<string name="conflict_error">Ocurrió un error intentando sincronizar los conflictos resueltos. Intente sincronizar nuevamente si es necesario.</string>
+<string name="pendent_resolve">Operación de resolución pendiente, por favor espere.</string>
+	<!--   -->
+	<!-- CONSTANTS FOR AUTHORITY AND ACCOUNT TYPE -->
+	<string name="account_type">com.github.vseguip.sweet.account</string>
+	<!-- CONSTANTS FOR PREFERENCES KEY -->
+	<string name="prefer_server_resolve">server_resolve</string>
+	<string name="full_sync">fullSync</string>
+</resources>

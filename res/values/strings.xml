@@ -21,7 +21,9 @@
 	<string name="title">Title</string>
 	<string name="sample">Abdul Musico</string>
 
+	<string name="personal_info">Personal information</string>
 	<string name="contact_information">Contact information</string>
+	<string name="address_info">Address information</string>
 	<string name="workPhone">Work</string>
 	<string name="mobilePhone">Mobile</string>
 	<string name="workFax">Fax</string>
@@ -70,6 +72,7 @@
 
 	<string name="notify_sync_conflict_message">Press to resolve conflicts when syncing to
 		SugarCRM.</string>
+		
 	<string name="notify_sync_conflict_title">Pending conflicts.</string>
 	<string name="notify_sync_conflict_ticket">Sweet sync conflict</string>
 	<string name="resolve">Resolve</string>

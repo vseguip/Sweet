@@ -30,7 +30,7 @@
 
 		<LinearLayout orientation="vertical" android:orientation="vertical"
 			android:layout_width="wrap_content" android:layout_height="fill_parent">
-			<TextView android:text="Personal information" style="@style/textSubtitle" />
+			<TextView android:text="@string/personal_info" style="@style/textSubtitle" />
 			<TableLayout style="@style/infoBox">
 				<!--  <TableRow>
 					
@@ -103,7 +103,7 @@
 
 
 			</TableLayout>
-			<TextView android:text="Address information" style="@style/textSubtitle" />
+			<TextView android:text="@string/address_info" style="@style/textSubtitle" />
 			<TableLayout style="@style/infoBox">
 				<TableRow>
 					<TextView android:text="@string/street" style="@style/textNormal" />
