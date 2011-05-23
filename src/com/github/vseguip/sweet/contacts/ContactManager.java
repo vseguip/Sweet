@@ -581,7 +581,7 @@ public class ContactManager {
 				StringBuilder sb_query = new StringBuilder();
 				ArrayList<String> sb_query_params = new ArrayList<String>();
 				values.clear();
-				if ((data_key != null) && (data != null) && !TextUtils.isEmpty(data)) {
+				if ((data_key != null) && (data != null)) {
 					values.put(mimetype_key, mimetype);
 					values.put(data_key, data);
 					// Update only if the field is different, avoids unneeded
@@ -605,7 +605,7 @@ public class ContactManager {
 				if (dataId != 0) { // if the row exists, update it
 					ContentProviderOperation.Builder builder = getDataUpdateBuilder(dataId, sync);
 					if (values.size() > 0) {
-						values.put(Data.SYNC1, field);// insert wich field
+						values.put(Data.SYNC1, field);// insert which field
 						// generated
 						sb_query.append(" OR (").append(Data.SYNC1).append(" <> ?)");
 						sb_query_params.add(field);
