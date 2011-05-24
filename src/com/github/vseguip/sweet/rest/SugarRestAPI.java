@@ -152,15 +152,7 @@ public class SugarRestAPI implements SugarAPI {
 					Log.v(TAG, "Successful authentication");
 				}
 
-				// Buffer the result into a string
-				BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-				StringBuilder sb = new StringBuilder();
-				String line;
-				while ((line = rd.readLine()) != null) {
-					sb.append(line);
-				}
-				rd.close();
-				String message = sb.toString();
+				String message = getResponseString(resp);
 				String authToken;
 				JSONObject json = null;
 				try {
@@ -216,6 +208,24 @@ public class SugarRestAPI implements SugarAPI {
 
 	}
 
+	/**
+	 * @param resp
+	 * @return
+	 * @throws IOException
+	 */
+	private String getResponseString(final HttpResponse resp) throws IOException {
+		// Buffer the result into a string
+		BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()), 8192);
+		StringBuilder sb = new StringBuilder();
+		String line;
+		while ((line = rd.readLine()) != null) {
+			sb.append(line);
+		}
+		rd.close();
+		String message = sb.toString();
+		return message;
+	}
+
 	@Override
 	/** {@inheritDoc} */
 	public List<ISweetContact> getNewerContacts(String token, String date) throws IOException, AuthenticationException {
@@ -247,15 +257,8 @@ public class SugarRestAPI implements SugarAPI {
 				Log.v(TAG, "Successful authentication");
 			}
 			Log.i(TAG, "Buffering request");
-			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
 			List<ISweetContact> contacts = new ArrayList<ISweetContact>();
-			StringBuilder sb = new StringBuilder();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				sb.append(line);
-			}
-			rd.close();
-			String message = sb.toString();
+			String message = getResponseString(resp);
 			JSONArray result;
 			JSONObject json = null;
 			try {
@@ -363,14 +366,7 @@ public class SugarRestAPI implements SugarAPI {
 		Log.i(TAG, "Got response");
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 			Log.i(TAG, "Buffering request");
-			BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
-			StringBuilder sb = new StringBuilder();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				sb.append(line);
-			}
-			rd.close();
-			String message = sb.toString();
+			String message = getResponseString(resp);
 			Log.i(TAG, "Set entries result: " + message);
 			JSONObject response = null;
 			try {
