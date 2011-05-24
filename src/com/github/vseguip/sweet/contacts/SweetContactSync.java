@@ -207,7 +207,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 					contacts = sugar.getNewerContacts(mAuthToken, lastDate);
 				} catch (AuthenticationException ex) {	
 					//maybe expired session, invalidate token and request new one
-					mAccountManager.invalidateAuthToken(account.type, AUTH_TOKEN_TYPE);
+					mAccountManager.invalidateAuthToken(account.type, mAuthToken);
 					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, false);
 				}
 				// try again, it could be due to an expired session
