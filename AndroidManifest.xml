@@ -61,6 +61,12 @@
 			<meta-data android:name="android.content.SyncAdapter"
 			android:resource="@xml/sync_adapter_calendar" /> </service>
 		-->
+		<activity android:name="SweetMainActivity" android:launchMode="standard">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"></action>
+				<category android:name="android.intent.category.LAUNCHER"></category>
+			</intent-filter>
+		</activity>
 	</application>
 
 
