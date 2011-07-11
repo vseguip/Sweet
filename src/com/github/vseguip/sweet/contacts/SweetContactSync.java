@@ -121,8 +121,21 @@ import android.util.Log;
  *         decide which one to keep
  * 
  */
+/**
+ * @author vseguip
+ *
+ */
+/**
+ * @author vseguip
+ *
+ */
+/**
+ * @author vseguip
+ * 
+ */
 public class SweetContactSync extends AbstractThreadedSyncAdapter {
 
+	private static final int BATCH_SIZE = 200;
 	Context mContext;
 	private String AUTH_TOKEN_TYPE;
 	private AccountManager mAccountManager;
@@ -175,13 +188,42 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 				mAccountManager.invalidateAuthToken(AUTH_TOKEN_TYPE, SweetContactSync.this.mAuthToken);
 				// } else {
 				//					
-				//mAccountManager.confirmCredentials(mAccount, null, null, null, null);
+				// mAccountManager.confirmCredentials(mAccount, null, null,
+				// null, null);
 				// }
 				mSyncResult.stats.numAuthExceptions++;
 			}
 
 		}
 
+	}
+
+	/**
+	 * Fetches the list of newer contacts in small batches to avoid out of
+	 * memory errors or excessively long query times that can timeout. *Must* be
+	 * orderd by modification date to be consistent so the last returned
+	 * contacts are always the newer ones. This can lead to a contact being returned two times so we use a hashtable to avoid this.
+	 * 
+	 * @param sugar The Sugar API object
+	 * @param lastDate Anchor for newer contacts
+	 * @return The list of contacts
+	 * @throws IOException
+	 */
+	public List<ISweetContact> fetchContacts(SugarAPI sugar, String lastDate) throws AuthenticationException, IOException {
+		List<ISweetContact> contacts = null;
+		HashMap<String, ISweetContact> allContacts = new HashMap<String, ISweetContact>();
+		int cursor = 0;
+		do {
+			Log.i(TAG, "Getting batch from " + cursor + " to " + (cursor + BATCH_SIZE) + " contacts");
+			contacts = sugar.getNewerContacts(mAuthToken, lastDate, cursor, BATCH_SIZE);
+			for (ISweetContact contact : contacts) {
+				allContacts.put(contact.getId(), contact);
+			}
+			cursor+=BATCH_SIZE;
+		} while((contacts!=null) && (contacts.size()==BATCH_SIZE));
+		if(contacts!=null)
+			contacts = new ArrayList<ISweetContact>(allContacts.values());			
+		return contacts;
 	}
 
 	@Override
@@ -198,21 +240,22 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 			public void run() throws URISyntaxException, OperationCanceledException, AuthenticatorException,
 					IOException, AuthenticationException {
 				Log.i(TAG, "Running PerformSync closure()");
-								
+
 				mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, true);
 				SugarAPI sugar = SugarAPIFactory.getSugarAPI(mAccountManager, account);
 				String lastDate = mAccountManager.getUserData(account, LAST_SYNC_KEY);
-				List<ISweetContact> contacts=null;
+				List<ISweetContact> contacts = null;
 				try {
-					contacts = sugar.getNewerContacts(mAuthToken, lastDate);
-				} catch (AuthenticationException ex) {	
-					//maybe expired session, invalidate token and request new one
+					contacts = fetchContacts(sugar, lastDate);
+				} catch (AuthenticationException ex) {
+					// maybe expired session, invalidate token and request new
+					// one
 					mAccountManager.invalidateAuthToken(account.type, mAuthToken);
 					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, false);
 				}
 				// try again, it could be due to an expired session
-				if(contacts==null){
-					contacts = sugar.getNewerContacts(mAuthToken, lastDate);
+				if (contacts == null) {
+					contacts = fetchContacts(sugar, lastDate);
 				}
 				List<ISweetContact> modifiedContacts = ContactManager.getLocallyModifiedContacts(mContext, account);
 				List<ISweetContact> createdContacts = ContactManager.getLocallyCreatedContacts(mContext, account);
@@ -300,6 +343,7 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 								SweetConflictResolveActivity.NOTIFY_CONFLICT,
 								SweetConflictResolveActivity.NOTIFY_CONTACT,
 								notify);
+
 					throw new OperationCanceledException("Pending conflicts");
 				}
 				// Save the last sync time in the account if all went ok

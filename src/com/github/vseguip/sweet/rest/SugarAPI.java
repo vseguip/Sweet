@@ -77,6 +77,24 @@ public interface SugarAPI {
 			IOException;
 
 	/**
+	 * Get contacts created, modified or deleted since a date, allows for "paging".
+	 * 
+	 * @param token
+	 *            The SessionID token gotten by getToken
+	 * @param date
+	 *            The date we want to use as a comparison. If null we will fetch
+	 *            all contacts, if not we will fetch contacts with modified_date
+	 *            greater than or equal to (>=) date.
+	 * @param start 
+	 *            Retrieve from this contact on           
+	 * @param count           
+	 * 			  Retrieve this number of contacts
+	 */
+	public abstract List<ISweetContact> getNewerContacts(String token, String date, int start, int count) throws AuthenticationException,
+			IOException;
+
+	
+	/**
 	 * Send contacts to server and create them if needed. If contacts have no ID
 	 * (e.g. they have been created locally but not in the server, get their new
 	 * id and set it in the list.

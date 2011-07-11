@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -101,7 +102,7 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGARCRM_POSTAL_CODE_FIELD = "primary_address_postalcode";
 	private static final String SUGARCRM_COUNTRY_FIELD = "primary_address_country";
 
-	private static final int TIMEOUT_OPS = 30 * 1000; // ms
+	private static final int TIMEOUT_OPS = 60 * 1000; // ms
 
 	private static final String KEY_PARAM_RESPONSE_TYPE = "response_type";
 	private static final String KEY_PARAM_INPUT_TYPE = "input_type";
@@ -115,10 +116,11 @@ public class SugarRestAPI implements SugarAPI {
 	private static final String SUGAR_MODULE_CONTACTS = "Contacts";
 	private static final String SUGAR_CONTACTS_QUERY = "";
 	private static final String SUGAR_CONTACT_LINK_NAMES = "";
-	private static final Object SUGAR_CONTACTS_ORDER_BY = "";
+	private static final Object SUGAR_CONTACTS_ORDER_BY = "contacts.date_modified ASC";
 	private static URI mServer;
 	private static boolean mNoCertValidation;
 	private static boolean mEncryptPasswd;
+
 	private HttpClient mHttpClient;
 
 	public SugarRestAPI(String server, boolean noCertValidation, boolean encryptPasswd) throws URISyntaxException {
@@ -216,19 +218,21 @@ public class SugarRestAPI implements SugarAPI {
 	private String getResponseString(final HttpResponse resp) throws IOException {
 		// Buffer the result into a string
 		BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()), 8192);
-		StringBuilder sb = new StringBuilder();
-		String line;
-		while ((line = rd.readLine()) != null) {
-			sb.append(line);
-		}
+		String message = rd.readLine();
 		rd.close();
-		String message = sb.toString();
 		return message;
 	}
 
 	@Override
 	/** {@inheritDoc} */
 	public List<ISweetContact> getNewerContacts(String token, String date) throws IOException, AuthenticationException {
+		return getNewerContacts(token, date, 0, 10000);
+	}
+
+	@Override
+	/** {@inheritDoc} */
+	public List<ISweetContact> getNewerContacts(String token, String date, int start, int count) throws IOException,
+			AuthenticationException {
 		final HttpResponse resp;
 		Log.i(TAG, "getNewerContacts()");
 
@@ -244,8 +248,8 @@ public class SugarRestAPI implements SugarAPI {
 		String sugar_query = SUGAR_CONTACTS_QUERY;
 		if (date != null)
 			sugar_query = "(contacts.date_modified >= '" + date + "')";
-		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(SUGAR_CONTACTS_ORDER_BY).put(0)
-				.put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(1000).put(0);
+		jso_array.put(token).put(SUGAR_MODULE_CONTACTS).put(sugar_query).put(SUGAR_CONTACTS_ORDER_BY).put(start)
+				.put(jso_fields).put(SUGAR_CONTACT_LINK_NAMES).put(count).put(0);
 
 		final HttpPost post = prepareJSONRequest(jso_array.toString(), GET_METHOD);
 		HttpClient httpClient = getConnection();
