@@ -275,11 +275,10 @@ public class SugarRestAPI implements SugarAPI {
 						// ID, first name and last name are compulsory, the rest
 						// can be skipped
 						JSONObject entrada = result.getJSONObject(i).getJSONObject("name_value_list");
-						contacts.add(new SweetContact(entrada.getJSONObject(SUGARCRM_CONTACT_ID_FIELD)
-								.getString("value"), entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD)
-								.getString("value"),
-								entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD).getString("value"),
-								getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
+						contacts.add(new SweetContact(getJSONString(entrada.getJSONObject(SUGARCRM_CONTACT_ID_FIELD)
+								.getString("value")), getJSONString(entrada.getJSONObject(SUGARCRM_FIRST_NAME_FIELD)
+								.getString("value")), getJSONString(entrada.getJSONObject(SUGARCRM_LAST_NAME_FIELD)
+								.getString("value")), getSugarValue(entrada, SUGARCRM_TITLE_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_NAME_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_ACCOUNT_ID_FIELD, ""),
 								getSugarValue(entrada, SUGARCRM_EMAIL1_FIELD, ""),
@@ -311,14 +310,12 @@ public class SugarRestAPI implements SugarAPI {
 						throw new AuthenticationException("Invalid session");
 					}
 				}
+			} finally {
+				httpClient.getConnectionManager().closeIdleConnections(100, TimeUnit.MILLISECONDS);
 			}
 		} else {
-			if (Log.isLoggable(TAG, Log.VERBOSE)) {
-				Log.v(TAG, "Error authenticating" + resp.getStatusLine());
-				throw new AuthenticationException("Invalid session");
-
-			}
-
+			Log.v(TAG, "Error authenticating" + resp.getStatusLine());
+			throw new AuthenticationException("Invalid session");
 		}
 		return null;
 	}
@@ -410,10 +407,30 @@ public class SugarRestAPI implements SugarAPI {
 		}
 	}
 
+	/**
+	 * Copies a string from the json object. If using ordinary getString, the
+	 * array backing the String will be passed as a reference. This means that
+	 * the String representing the wholse JSON response would be kept in memory
+	 * causing OOM errors. This is fixed by really copying the substring
+	 * 
+	 * @param string 
+	 *            The string we want to copy
+	 * @returns An actual copy of the string backed by a different char[]
+	 * 
+	 */
+	private String getJSONString(String string) {
+		char[] copy = new char[string.length()];
+		for (int i = 0; i < copy.length; i++) {
+			copy[i] = string.charAt(i);
+		}
+		return new String(copy);
+	}
+
 	private String getSugarValue(JSONObject json, String key, String d) {
 		String val = d;
 		try {
-			val = json.getJSONObject(key).getString("value");
+			val = getJSONString(json.getJSONObject(key).getString("value"));
+
 		} catch (JSONException ex) {
 			Log.i(TAG, "Field " + key + " not set in SugarCRM, ignoring.");
 		}
