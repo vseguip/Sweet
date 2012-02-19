@@ -72,7 +72,7 @@
 
 	<string name="notify_sync_conflict_message">Press to resolve conflicts when syncing to
 		SugarCRM.</string>
-		
+	<string name="sugarcrm_profile">SugarCRM Profile</string>	
 	<string name="notify_sync_conflict_title">Pending conflicts.</string>
 	<string name="notify_sync_conflict_ticket">Sweet sync conflict</string>
 	<string name="resolve">Resolve</string>
