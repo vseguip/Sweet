@@ -252,6 +252,11 @@ public class SweetContactSync extends AbstractThreadedSyncAdapter {
 					// one
 					mAccountManager.invalidateAuthToken(account.type, mAuthToken);
 					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, false);
+				} catch(NullPointerException npe) {
+					// maybe expired session, invalidate token and request new
+					// one					
+					mAccountManager.invalidateAuthToken(account.type, mAuthToken);
+					mAuthToken = mAccountManager.blockingGetAuthToken(account, AUTH_TOKEN_TYPE, false);
 				}
 				// try again, it could be due to an expired session
 				if (contacts == null) {
