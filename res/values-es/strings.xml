@@ -20,7 +20,7 @@
 	<string name="accountName">Organización</string>
 	<string name="title">Título</string>
 	<string name="sample"></string>
-
+	<string name="sugarcrm_profile">Perfil SugarCRM</string>
 	<string name="personal_info">Información personal</string>
 	<string name="contact_information">Información de contacto</string>
 	<string name="address_info">Dirección de contacto</string>	<string name="workPhone">Trabajo</string>

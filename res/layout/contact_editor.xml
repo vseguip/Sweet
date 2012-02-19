@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent" android:layout_height="fill_parent"
-	android:orientation="vertical" theme="@android:style/Theme.Light">
-	<LinearLayout orientation="vertical" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" style="@android:style/ButtonBar"
-		android:orientation="horizontal">
-		<ImageView android:id="@+id/imageView1"
+	android:orientation="vertical" android:theme="@android:style/Theme.Light">
+	
+	<LinearLayout android:orientation="vertical" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" style="@android:style/ButtonBar">
+		<ImageView android:id="@+id/imageView1" android:contentDescription="@string/app_name"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
 			android:src="@drawable/icon" android:layout_marginRight="5dip"></ImageView>
 
-		<LinearLayout orientation="vertical"
+		<LinearLayout android:orientation="vertical"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			style="@android:style/ButtonBar" android:orientation="vertical"
+			style="@android:style/ButtonBar" 
 			android:layout_gravity="left">
 
 			<TextView android:text="@string/sample"
 				android:textAppearance="?android:attr/textAppearanceLarge"
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
 				android:id="@+id/textTitleName" android:layout_marginRight="5dip" />
-			<TextView android:text="SugarCRM Profile"
+			<TextView android:text="@string/sugarcrm_profile"
 				android:textAppearance="?android:attr/textAppearanceMedium"
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
 				android:id="@+id/textView1" android:layout_marginRight="5dip" />
@@ -28,7 +28,7 @@
 		android:layout_width="fill_parent" android:layout_height="0dip"
 		android:layout_weight="1">
 
-		<LinearLayout orientation="vertical" android:orientation="vertical"
+		<LinearLayout android:orientation="vertical"
 			android:layout_width="wrap_content" android:layout_height="fill_parent">
 			<TextView android:text="@string/personal_info" style="@style/textSubtitle" />
 			<TableLayout style="@style/infoBox">
@@ -148,7 +148,7 @@
 
 	</ScrollView>
 
-	<LinearLayout android:layout_width="fill_parent"
+	<LinearLayout android:layout_width="fill_parent" android:baselineAligned="false"
 		android:orientation="vertical" style="@android:style/ButtonBar"
 		android:layout_height="wrap_content">
 
